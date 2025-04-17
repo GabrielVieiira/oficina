@@ -39,7 +39,23 @@ class MecanicosModel(DatabaseManager):
             st.error(f'Erro ao recuperar informações de mecânico: {e}')
             return None
         
+    def _mecanico_existe(self, nome: str) -> bool:
+        try:
+            query = '''SELECT * FROM mecanicos WHERE nome = ?'''
+            mecanico = self.fetch_one(query, (nome,))
+            if mecanico:
+                return True
+            else:
+                return False
+        except Exception as e:
+            st.error(f'Erro ao verificar mecânico: {e}')
+            return True
+    
     def create_mecanico(self, nome: str, cargo_id: int, regional_id: int) -> None:
+        nome = nome.strip().upper()
+        if self._mecanico_existe(nome):
+            st.error("Mecânico já cadastrado.")
+            return None
         try:
             query = f'INSERT INTO mecanicos (nome, cargo_id, regional_id) VALUES (?, ?, ?)'
             self.execute_query(query,(nome, cargo_id, regional_id))

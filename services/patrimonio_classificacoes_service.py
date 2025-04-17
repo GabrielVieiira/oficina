@@ -4,9 +4,9 @@ class PatrimonioClassificacoesService:
     def __init__(self):
         self.patrimonio_classificacao_model = PatrimonioClassificacoesModel()
 
-    def listar_classificacoes(self) -> list:
+    def listar_patrimonio_classificacoes(self) -> list:
         try:
-            classificacoes = self.patrimonio_classificacao_model.get_classificacoes()
+            classificacoes = self.patrimonio_classificacao_model.get_patrimonio_classificacoes()
             if classificacoes:
                 return classificacoes
             else:

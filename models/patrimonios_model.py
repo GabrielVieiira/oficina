@@ -50,7 +50,7 @@ class PatrimoniosModel(DatabaseManager):
             st.error(f'Erro ao recuperar informações de patrimônio: {e}')
             return None
         
-    def _verificar_patrimonio(self, numero: str) -> bool:
+    def _patrimonio_existe(self, numero: str) -> bool:
         try:
             query = f'SELECT * FROM patrimonios WHERE numeroPatrimonio = ?'
             patrimonio = self.fetch_one(query, (numero,))
@@ -60,7 +60,7 @@ class PatrimoniosModel(DatabaseManager):
                 return False
         except Exception as e:
             st.error(f'Erro ao verificar patrimônio: {e}')
-            return False
+            return True
         
     def _get_data_atual(self) -> str:
         try:
@@ -78,8 +78,7 @@ class PatrimoniosModel(DatabaseManager):
         self, numero: str, centro_de_custo_id: int, modelo: str, ano: int, placa: str, marca_id: int, combustivel_id: int, classificacao_id: int, proprio: bool
         ) -> None:
         numero = numero.strip().upper()
-        existe = self._verificar_patrimonio(numero)
-        if existe:
+        if self._patrimonio_existe(numero):
             st.error('Patrimônio já cadastrado!')
             return None
         try:

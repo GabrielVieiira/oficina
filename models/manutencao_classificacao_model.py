@@ -2,13 +2,13 @@ import streamlit as st
 
 from core.database_manager import DatabaseManager
 
-class PatrimonioClassificacoesModel(DatabaseManager):
+class ManutencaoClassificacaoModel(DatabaseManager):
     def __init__(self):
         super().__init__()
 
-    def get_patrimonio_classificacoes(self) -> list:
+    def get_manutencao_classificacoes(self) -> list:
         try:
-            query = 'SELECT * FROM patrimonioClassificacao'
+            query = 'SELECT * FROM manutencaoClassificacao'
             classificacao = self.fetch_all(query)
             if classificacao:
                 dados = [{'id': item[0], 'nome': item[1]} for item in classificacao]

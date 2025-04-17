@@ -19,15 +19,12 @@ Patrimonios = PatrimoniosService()
 Solicitantes = SolicitantesService()
 
 st.set_page_config(page_title="Cadastro", page_icon=":clipboard:", layout="wide")
-
-tipos_de_cadastro = ["MECÂNICO", "PATRIMÔMIO","SOLICITANTE", "LOCAL", "PENDÊNCIA"]
-tipo = st.sidebar.selectbox("Escolha o que deseja cadastrar", tipos_de_cadastro)
-
+st.title("📋 GERENCIAR")
 
 def validar_form(*campos):
     return all(campos)
-
-if tipo == "MECÂNICO":
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["MECÂNICOS", "PATRIMÔMIOS", "SOLICITANTES", "LOCAIS", "PENDÊNCIAS"])
+with tab1:
     with st.expander('Cadatrar Mecânico', expanded=True):
         with st.form("Cadastro de executante", clear_on_submit=True):
             nome = st.text_input("Nome")
@@ -39,8 +36,8 @@ if tipo == "MECÂNICO":
             )
             if st.form_submit_button("Salvar"):
                 if nome:
-                    Mecanicos.cadastrar_funcionario(nome, cargo['id'], regional['id'])
-                    st.success("Executante cadastrado!!")
+                    Mecanicos.cadastrar_mecanico(nome, cargo['id'], regional['id'])
+                    st.success("Mecânico cadastrado!!")
                 else:
                     st.error("Preencha todos os campos!!")
                     
@@ -55,7 +52,7 @@ if tipo == "MECÂNICO":
         else:
             st.warning("Nenhum mecânico cadastrado.")
             
-elif tipo == "PATRIMÔMIO":
+with tab2:
     with st.expander('Cadatrar Patrimônio', expanded=True):
         with st.form("Cadastro de Patrimônio", clear_on_submit=True):
             patrimonio = st.text_input("Número do patrimônio")
@@ -74,7 +71,7 @@ elif tipo == "PATRIMÔMIO":
                 "Combustível", Combustivel.listar_combustiveis(), format_func=lambda x: x['nome']
             )
             classificacao = st.selectbox(
-                "Classificação", Classificacao.listar_classificacoes(), format_func=lambda x: x['nome']
+                "Classificação", Classificacao.listar_patrimonio_classificacoes(), format_func=lambda x: x['nome']
             )
             proprio = st.radio("Próprio?", options=["Sim", "Não"])
             if st.form_submit_button("Salvar"):
@@ -118,19 +115,16 @@ elif tipo == "PATRIMÔMIO":
         else:
             st.warning("Nenhum patrimônio cadastrado.")
             
-elif tipo == "SOLICITANTE":
+with tab3:
     with st.expander('Cadatrar Solicitante', expanded=True):
         with st.form("Cadastro de solicitante", clear_on_submit=True):
             nome = st.text_input("Nome")
-            cargo = st.selectbox(
-                "Cargo", Mecanicos.listar_cargos(), format_func=lambda x: x['nome']
-            )
             regional = st.selectbox(
                 "Regional", Regionais.listar_regionais(), format_func=lambda x: x['nome']
             )
             if st.form_submit_button("Salvar"):
                 if nome:
-                    Solicitantes.cadastrar_solicitante(nome, cargo['id'], regional['id'])
+                    Solicitantes.cadastrar_solicitante(nome, regional['id'])
                     st.success("Solicitante cadastrado!!")
                 else:
                     st.error("Preencha todos os campos!!")
@@ -140,13 +134,12 @@ elif tipo == "SOLICITANTE":
         if solicitantes:
             for solicitante in solicitantes:
                 st.write(f"Nome: {solicitante['nome']}")
-                st.write(f"Cargo: {solicitante['cargo']}")
                 st.write(f"Regional: {solicitante['regional']}")
                 st.write("---")
         else:
             st.warning("Nenhum solicitante cadastrado.")
 
-elif tipo == "LOCAL":
+with tab4:
     with st.form("Cadastro de local", clear_on_submit=True):
         local = st.text_input("Projeto/Local")
         municipio = st.text_input("Município")
@@ -157,7 +150,7 @@ elif tipo == "LOCAL":
             else:
                 st.error("Preencha todos os campos!!")
 
-elif tipo == "PENDÊNCIA":
+with tab5:
     with st.form("Cadastro de pendência", clear_on_submit=True):
         regional = st.selectbox(
             "Regional", ["BRACELL", "NEOMILLE", "SUZANO", "CERRADINHO", "LACAN"]
