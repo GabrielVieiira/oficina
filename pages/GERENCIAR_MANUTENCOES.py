@@ -1,4 +1,5 @@
 import streamlit as st
+import utils
 from services.manutencoes_service import ManutencoesService
 from services.patrimonios_service import PatrimoniosService
 from services.mecanicos_service import MecanicosService
@@ -93,7 +94,7 @@ with tab2:
         manutencao = st.selectbox(
             "Selecione uma manutenção para atualizar",
             manutencoes,
-            format_func=lambda x: f"#{x['data_entrada']} | {x['numero_patrimonio']} | Status: {x['status_nome']}"
+            format_func=lambda x: f"# {x['numero_patrimonio']} | Data de entrada: {utils.formatar_data(x['data_entrada'])} | Status: {x['status_nome']}"
         )
 
         with st.form("form_atualizacao"):
