@@ -27,65 +27,101 @@ with tab1:
         
         patrimonio = col1.selectbox(
             "Patrimônio", 
-            Patrimonios.listar_patrimonios(), 
+            Patrimonios.patrimonios_selecao(), 
             format_func=lambda x: f"{x['numero']} - {x['modelo']}"
         )
         
         regional = col2.selectbox(
             "Regional", 
-            Regionais.listar_regionais(), 
+            Regionais.regionais_selecao(), 
             format_func=lambda x: f"{x['nome']}"
         )
         
-        mecanico = col1.selectbox(
-            "Mecânico responsável", 
-            Mecanicos.listar_mecanicos(), 
-            format_func=lambda x: f"{x['nome']} ({x['cargo']})"
-        )
+        # mecanico = col1.selectbox(
+        #     "Mecânico responsável", 
+        #     Mecanicos.mecanicos_selecao(), 
+        #     format_func=lambda x: f"{x['nome']} ({x['cargo']})"
+        # )
         
         solicitante = col2.selectbox(
             "Solicitante", 
-            Solicitantes.listar_solicitantes(), 
+            Solicitantes.solicitantes_selecao(), 
             format_func=lambda x: f"{x['nome']}"
         )
         
         classificacao_manutencao = col1.selectbox(
             "Classificação de Manutenção", 
-            Classificacao.listar_manutencao_classificacoes(), 
+            Classificacao.manutencao_classificacoes_selecao(), 
             format_func=lambda x: x['nome']
         )
         
         prioridade = col2.selectbox(
             "Prioridade", 
-            ["Baixa", "Média", "Alta"],
+            ["","Baixa", "Média", "Alta"],
             format_func=lambda x: x
         )
         
-        tipo_manutencao = col1.radio("Tipo de Manutenção", ["CORRETIVA", "PREVENTIVA"])
-        data_entrada = col1.date_input("Data de Entrada", format="DD/MM/YYYY")
-        tipo_mao_de_obra = col2.radio('Mão de obra', ['PRÓPRIA', 'TERCEIROS'])
-        previsao_termino = col2.date_input("Previsão de termino da manutenção", format="DD/MM/YYYY")
+        data_entrada = col1.date_input(
+            "Data de Entrada",
+            format="DD/MM/YYYY",
+            value=None
+            )
         
-        descricao_manutencao = st.text_area("Descrição do Problema")
+        tipo_manutencao = col1.radio(
+            "Tipo de Manutenção",
+            ["CORRETIVA", "PREVENTIVA"]
+            )
+           
+        # tipo_mao_de_obra = col2.radio(
+        #     'Mão de obra', 
+        #     ['PRÓPRIA', 'TERCEIROS']
+        #     )
         
+        # previsao_termino = col2.date_input(
+        #     "Previsão de termino da manutenção",
+        #     format="DD/MM/YYYY",
+        #     value=None
+        #     )
+        
+        descricao_problema = st.text_area("Descrição do Problema")
+        observacao = st.text_area("Observação") 
+        
+        # qtd_horas_previstas = col1.number_input(
+        #         "Quantidade de horas previstas", format="%0.0f"
+        #         )
+        
+        
+        
+        # valor_hora_mecanico = col2.number_input(
+        #         "Valor da hora do mecânico", format="%0.2f"
+        #         )
+                
         if st.form_submit_button("Registrar"):
-            Manutencoes.registrar_entrada(
-                patrimonio['id'],
-                regional['id'],
-                mecanico['id'],
-                solicitante['id'],
-                classificacao_manutencao['id'],
-                prioridade,
-                tipo_manutencao,
-                data_entrada,
-                tipo_mao_de_obra,
-                previsao_termino,
-                descricao_manutencao
-                )
-            st.success("Patrimônio registrado para manutenção!")
-            
+            try:
+                sucesso_cadastro =  Manutencoes.registrar_entrada(
+                    patrimonio['id'],
+                    regional['id'],
+                    solicitante['id'],
+                    classificacao_manutencao['id'],
+                    prioridade,
+                    tipo_manutencao,
+                    data_entrada,
+                    descricao_problema,
+                    observacao,
+                    )
+                st.success("Patrimônio registrado para manutenção!")
+            except ValueError as ve:
+                st.error(f"Erro de validação: {ve}")
+            except Exception as e:
+                st.error(f"Erro ao registrar entrada de manutenção: {e}")
 with tab2:
+    opcoes_filtro = ["Todas", "Aguardando planejamento", "Iniciadas", "Aguardando peças", "Canceladas", "Finalizadas"]   
     st.subheader("🔧 Atualizar Manutenção Existente")
+
+    filtro = st.sidebar.selectbox("Selecione o status da manutenção", opcoes_filtro, index=0)
+    periodo_de = st.sidebar.date_input("Selecione o período", value=None, format="DD/MM/YYYY", key="periodo_de")
+    periodo_ate = st.sidebar.date_input("Selecione o período", value=None, format="DD/MM/YYYY", key="periodo_ate") 
+    st.sidebar.markdown("**Observação:** O período é considerado apenas para as manutenções que estão em andamento ou concluídas.")
 
     manutencoes = Manutencoes.listar_manutencoes()
     if not manutencoes:

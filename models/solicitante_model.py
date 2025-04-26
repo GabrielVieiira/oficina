@@ -6,28 +6,20 @@ class SolicitantesModel(DatabaseManager):
     def __init__(self):
         super().__init__()
 
-    def _existe_solicitante (self, nome: str) -> bool:
+    def solicitante_ja_existe (self, nome: str) -> bool:
         try:
             query = '''SELECT * FROM solicitantes WHERE nome = ?'''
             solicitante = self.fetch_one(query, (nome,))
-            if solicitante:
-                return True
-            else:
-                return False
+            return bool(solicitante)
         except Exception as e:
-            st.error(f'Erro ao verificar solicitante: {e}')
-            return True
+            raise Exception(f'Erro ao verificar solicitante: {e}')
     
     def create_solicitante(self, nome: str, regional: int) -> None:
-        nome = nome.strip().upper()
-        if self._existe_solicitante(nome):
-            st.error("Solicitante já cadastrado.")
-            return None
         try:
             query = '''INSERT INTO solicitantes (nome, regional_id) VALUES (?, ?)'''
             self.execute_query(query, (nome, regional))
         except Exception as e:
-            st.error(f'Erro ao cadastrar solicitante: {e}')
+            raise Exception(f'Erro ao cadastrar solicitante: {e}')
     
     def get_solicitantes(self) -> list:
         try:

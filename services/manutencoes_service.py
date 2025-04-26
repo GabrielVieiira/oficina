@@ -6,33 +6,74 @@ class ManutencoesService:
     def __init__(self):
         self.manutencoes_model = ManutencoesModel()
 
+    def _validar_dados_entrada(
+        self,
+        patrimonio_id: int,
+        regional_id: int,
+        solicitante_id:int,
+        classificacao_manutencao_id: int,
+        prioridade: str,
+        tipo_manutencao: str,
+        data_entrada:datetime.date,
+        descricao_problema
+        ) -> None:
+        if not patrimonio_id:
+            raise ValueError("O patrimônio não pode ser vazio.")
+        if not regional_id:
+            raise ValueError("A regional não pode ser vazia.")
+        if not solicitante_id:
+            raise ValueError("O solicitante não pode ser vazio.")
+        if not classificacao_manutencao_id:
+            raise ValueError("A classificação de manutenção não pode ser vazia.")
+        if not prioridade:
+            raise ValueError("A prioridade não pode ser vazia.")
+        if not tipo_manutencao:
+            raise ValueError("O tipo de manutenção não pode ser vazio.")
+        if not descricao_problema:
+            raise ValueError("A descrição do problema não pode ser vazia.")
+        if not data_entrada:
+            raise ValueError("A data de entrada não pode ser vazia.")
+    
     def registrar_entrada(
-            self,
-            patrimonio_id: int,
-            regional_id: int,
-            mecanico_id: int,
-            solicitante_id:int,
-            classificacao_manutencao_id: int,
-            prioridade: str,
-            tipo_manutencao: str,
-            data_entrada:datetime.date,
-            tipo_mao_de_obra: str,
-            previsao_termino: datetime.date,
-            descricao_manutencao:str
-            ) -> None:
+        self,
+        patrimonio_id: int,
+        regional_id: int,
+        solicitante_id:int,
+        classificacao_manutencao_id: int,
+        prioridade: str,
+        tipo_manutencao: str,
+        data_entrada:datetime.date,
+        descricao_problema: str,
+        observacao: str,
+        ) -> None:
         
-        self.manutencoes_model.create_manutencao(
-            patrimonio_id,
-            regional_id,
-            mecanico_id,
-            solicitante_id,
-            classificacao_manutencao_id,
-            prioridade,
-            tipo_manutencao, data_entrada,
-            tipo_mao_de_obra,
-            previsao_termino,
-            descricao_manutencao
-            )
+        try:
+            self._validar_dados_entrada(
+                patrimonio_id,
+                regional_id,
+                solicitante_id,
+                classificacao_manutencao_id,
+                prioridade,
+                tipo_manutencao,
+                data_entrada,
+                descricao_problema,
+            )            
+                   
+            self.manutencoes_model.create_manutencao(
+                patrimonio_id,
+                regional_id,
+                solicitante_id,
+                classificacao_manutencao_id,
+                prioridade,
+                tipo_manutencao, data_entrada,
+                descricao_problema,
+                observacao,
+                )
+        except ValueError as ve:
+            raise ValueError(f"Erro de validação: {ve}")
+        except Exception as e:
+            raise Exception(f"Erro ao registrar entrada de manutenção: {e}")
+            
 
     def iniciar_manutencao(self, manutencao_id: int) -> None:
         self.manutencoes_model.iniciar_manutencao(manutencao_id)
@@ -45,6 +86,34 @@ class ManutencoesService:
 
     def listar_manutencoes(self):
         return self.manutencoes_model.get_all_manutencoes()
+    
+    def manutencao_selecao(self) -> list:
+        try:
+            manutencoes = self.manutencoes_model.get_all_manutencoes()
+            dicionario_em_branco = {
+                        'id': None, 
+                        'numero_patrimonio': '',
+                        'mecanico_nome': '',
+                        'regional_nome': '',
+                        'solicitante_nome': '',
+                        'descricao': '',
+                        'tipo_mao_de_obra': '',
+                        'cassificacao_manutencao': '',
+                        'tipo_manutencao': '',
+                        'data_entrada': '',
+                        'inicio_manutencao': '',
+                        'previsao_termino': '',
+                        'termino_manutencao': '',
+                        'prioridade': '',
+                        'status_nome': '',
+                        'no_status_desde': ''
+                    }
+            if manutencoes:
+                return [dicionario_em_branco] + manutencoes
+            else:
+                return [dicionario_em_branco]
+        except Exception as e:
+            raise Exception(f'Erro ao recuperar informações de manutenção: {e}')
     
     def atualizar_manutencao(
         self,

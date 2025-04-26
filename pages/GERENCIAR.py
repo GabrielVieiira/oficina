@@ -25,21 +25,26 @@ def validar_form(*campos):
     return all(campos)
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["MECÂNICOS", "PATRIMÔMIOS", "SOLICITANTES", "LOCAIS", "PENDÊNCIAS"])
 with tab1:
-    with st.expander('Cadatrar Mecânico', expanded=True):
+    with st.expander('Cadastrar Mecânico', expanded=True):
         with st.form("Cadastro de executante", clear_on_submit=True):
             nome = st.text_input("Nome")
             cargo = st.selectbox(
                 'Cargo', Mecanicos.listar_cargos(), format_func=lambda x: x['nome']
-                )
+            )
             regional = st.selectbox(
                 "Regional", Regionais.listar_regionais(), format_func=lambda x: x['nome']
             )
+            
             if st.form_submit_button("Salvar"):
-                if nome:
+                try:
                     Mecanicos.cadastrar_mecanico(nome, cargo['id'], regional['id'])
-                    st.success("Mecânico cadastrado!!")
-                else:
-                    st.error("Preencha todos os campos!!")
+                    st.success("Mecânico cadastrado com sucesso!")
+                
+                except ValueError as e:
+                    st.error(f"Erro de validação: {str(e)}")
+                
+                except Exception as e:
+                    st.error(f"Ocorreu um erro ao cadastrar o mecânico: {str(e)}")
                     
     with st.expander('Visualizar Mecânicos'):
         mecanicos = Mecanicos.listar_mecanicos()
@@ -75,16 +80,7 @@ with tab2:
             )
             proprio = st.radio("Próprio?", options=["Sim", "Não"])
             if st.form_submit_button("Salvar"):
-                if validar_form(
-                    patrimonio,
-                    centro_de_custo,
-                    modelo,
-                    ano,
-                    placa,
-                    marca,
-                    combustivel,
-                    proprio,
-                ):
+                try:
                     Patrimonios.cadastrar_patrimonio(
                         patrimonio,
                         centro_de_custo['id'],
@@ -96,9 +92,12 @@ with tab2:
                         classificacao['id'],
                         proprio == "Sim",
                     )
-                else:
-                    st.error("Preencha todos os campos!!")
-
+                    st.success("Patrimônio cadastrado com sucesso!")
+                except ValueError as e:
+                    st.error(f"Erro de validação: {str(e)}")
+                except Exception as e:
+                    st.error(f"Ocorreu um erro ao cadastrar o patrimônio: {str(e)}")
+                    
     with st.expander('Visualizar Patrimônios'):
         patrimonios = Patrimonios.listar_patrimonios()
         if patrimonios:
@@ -123,11 +122,13 @@ with tab3:
                 "Regional", Regionais.listar_regionais(), format_func=lambda x: x['nome']
             )
             if st.form_submit_button("Salvar"):
-                if nome:
+                try:
                     Solicitantes.cadastrar_solicitante(nome, regional['id'])
                     st.success("Solicitante cadastrado!!")
-                else:
-                    st.error("Preencha todos os campos!!")
+                except ValueError as e:
+                    st.error(f"Erro de validação: {str(e)}")
+                except Exception as e:
+                    st.error(f"Ocorreu um erro ao cadastrar o solicitante: {str(e)}")
 
     with st.expander('Visualizar Solicitantes'):
         solicitantes = Solicitantes.listar_solicitantes()

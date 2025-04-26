@@ -7,36 +7,40 @@ class ManutencoesModel(DatabaseManager):
     def __init__(self):
         super().__init__()
 
+    def manutencao_ja_existe(self, patrimonio_id: int) -> bool:
+        try:
+            query = '''SELECT * FROM manutencoes WHERE patrimonio_id = ? AND status_id = 1'''
+            manutencao = self.fetch_one(query, (patrimonio_id,))
+            return bool(manutencao)
+        except Exception as e:
+            raise Exception(f'Erro ao verificar manutenção: {e}')
+    
     def create_manutencao(
             self,
             patrimonio_id: int,
             regional_id: int,
-            mecanico_id: int,
             solicitante_id:int,
             classificacao_manutencao_id: int,
             prioridade: str,
             tipo_manutencao: str,
             data_entrada:datetime.date,
-            tipo_mao_de_obra: str,
-            previsao_termino: datetime.date,
-            descricao_manutencao:str
+            descricao_problema:str,
+            observacao:str,
             ) -> None:
         try:
-            query = '''INSERT INTO manutencoes (patrimonio_id, regional_id, mecanico_id, solicitante_id, manutencao_classificacao_id, prioridade, tipo_manutecao, data_entrada, tipo_mao_de_obra, previsao_termino, descricao) 
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'''
+            query = '''INSERT INTO manutencoes2 (patrimonio_id, regional_id, solicitante_id, manutencaoClassificacao_id, prioridade, tipoManutencao, dtEntrada, problemaDescricao, observacao) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'''
             self.execute_query(
                 query,(
                     patrimonio_id,
                     regional_id,
-                    mecanico_id,
                     solicitante_id,
                     classificacao_manutencao_id,
                     prioridade,
                     tipo_manutencao,
                     data_entrada,
-                    tipo_mao_de_obra,
-                    previsao_termino,
-                    descricao_manutencao
+                    descricao_problema,
+                    observacao,
                     )
             )
         except Exception as e:
@@ -81,8 +85,7 @@ class ManutencoesModel(DatabaseManager):
                             m.termino_manutencao,
                             m.prioridade,
                             st.nome AS status,
-                            m.no_status_desde,
-                            m.termino_manutencao
+                            m.no_status_desde
                         FROM manutencoes m
                         JOIN patrimonios p ON m.patrimonio_id = p.id
                         JOIN mecanicos mc ON m.mecanico_id = mc.id
@@ -107,8 +110,7 @@ class ManutencoesModel(DatabaseManager):
                          'termino_manutencao':manutencao[12],
                          'prioridade':manutencao[13],
                          'status_nome':manutencao[14],
-                         'no_status_desde':manutencao[15],
-                         'termino_manutencao':manutencao[16]} for manutencao in manutencoes]
+                         'no_status_desde':manutencao[15]} for manutencao in manutencoes]
             else:
                 return []
         except Exception as e:
