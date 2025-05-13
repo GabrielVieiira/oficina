@@ -7,36 +7,21 @@ class PatrimoniosModel(DatabaseManager):
         super().__init__()
 
     def get_patrimonio(self) -> list:
-        try:
-            query = ''' SELECT 
-                            patrimonios.id AS patrimonio_id,
+        query = ''' SELECT 
+                            patrimonios.id,
                             patrimonios.numeroPatrimonio,
+                            centroDeCusto.nome as centroDeCusto,
                             patrimonios.modelo,
-                            patrimonios.ano,
-                            patrimonios.placa,
-                            patrimonios.proprio,
-                            patrimonios.dataCadastro,
-                            
-                            centroDeCusto.nome AS centroDeCusto,
-                            marca.nome AS marca,
-                            combustivel.nome AS combustivel,
-                            patrimonioClassificacao.nome AS classificacao
-
-                        FROM patrimonios
-                        JOIN centroDeCusto ON patrimonios.centroDeCusto_id = centroDeCusto.id
-                        LEFT JOIN marca ON patrimonios.marca_id = marca.id
-                        LEFT JOIN combustivel ON patrimonios.combustivel_id = combustivel.id
-                        JOIN patrimonioClassificacao ON patrimonios.classificacao_id = patrimonioClassificacao.id
-                        ORDER BY patrimonios.id; '''
-            patrimonios = self.fetch_all(query)
-            if patrimonios:
-                dados = [{'id':patrimonio[0], 'numero':patrimonio[1], 'modelo':patrimonio[2], 'ano':patrimonio[3], 'placa':patrimonio[4], 'proprio':patrimonio[5], 'data_cadastro':patrimonio[6], 'centro_custo':patrimonio[7], 'marca':patrimonio[8], 'combustivel':patrimonio[9], 'classificacao':[10]} for patrimonio in patrimonios]
-                return dados
-            else:
-                return []
-        except Exception as e:
-            st.error(f'Erro ao recuperar informações de patrimônio: {e}')
-            return []
+                            patrimonioClassificacao.nome AS classificacao,
+                            patrimonios.proprio
+                    FROM patrimonios
+                    LEFT JOIN centroDeCusto ON patrimonios.centroDeCusto_id = centroDeCusto.id
+                    LEFT JOIN patrimonioClassificacao on patrimonios.classificacao_id = patrimonioClassificacao.id '''
+        patrimonios = self.fetch_all(query)
+        if patrimonios:
+            return patrimonios
+        else:
+            return False
         
     def get_patrimonio_by_id(self, id: int) -> dict:
         try:
@@ -51,12 +36,9 @@ class PatrimoniosModel(DatabaseManager):
             return None
         
     def patrimonio_ja_existe(self, numero: str) -> bool:
-        try:
-            query = f'SELECT * FROM patrimonios WHERE numeroPatrimonio = ?'
-            patrimonio = self.fetch_one(query, (numero,))
-            return bool(patrimonio)
-        except Exception as e:
-            raise Exception(f'Erro ao verificar patrimônio: {e}')
+        query = f'SELECT * FROM patrimonios WHERE numeroPatrimonio = ?'
+        patrimonio = self.fetch_one(query, (numero,))
+        return bool(patrimonio)
         
     def _get_data_atual(self) -> str:
         try:
@@ -71,10 +53,27 @@ class PatrimoniosModel(DatabaseManager):
             return None
     
     def create_patrimonio(
-        self, numero: str, centro_de_custo_id: int, modelo: str, ano: int, placa: str, marca_id: int, combustivel_id: int, classificacao_id: int, proprio: bool
-        ) -> None:
-        try:
-            query = f'INSERT INTO patrimonios (numeroPatrimonio, centroDeCusto_id, modelo, ano, placa, marca_id, combustivel_id, classificacao_id, proprio, dataCadastro) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-            self.execute_query(query,(numero, centro_de_custo_id, modelo, ano, placa, marca_id, combustivel_id, classificacao_id, proprio, self._get_data_atual()))
-        except Exception as e:
-            raise Exception(f'Erro ao cadastrar patrimônio: {e}')
+        self,
+        numero: str,
+        centro_de_custo_id: int,
+        modelo: str,
+        classificacao_id: int,
+        proprio: bool
+    ) -> None:
+        query = """
+            INSERT INTO patrimonios (
+                numeroPatrimonio,
+                centroDeCusto_id,
+                modelo,
+                classificacao_id,
+                proprio
+            ) VALUES (?, ?, ?, ?, ?)
+        """
+        params = (
+            numero,
+            centro_de_custo_id,
+            modelo,
+            classificacao_id,
+            proprio
+        )
+        self.execute_query(query, params)

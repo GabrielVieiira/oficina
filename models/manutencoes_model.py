@@ -16,35 +16,69 @@ class ManutencoesModel(DatabaseManager):
             raise Exception(f'Erro ao verificar manutenção: {e}')
     
     def create_manutencao(
-            self,
-            patrimonio_id: int,
-            regional_id: int,
-            solicitante_id:int,
-            classificacao_manutencao_id: int,
-            prioridade: str,
-            tipo_manutencao: str,
-            data_entrada:datetime.date,
-            descricao_problema:str,
-            observacao:str,
-            ) -> None:
-        try:
-            query = '''INSERT INTO manutencoes2 (patrimonio_id, regional_id, solicitante_id, manutencaoClassificacao_id, prioridade, tipoManutencao, dtEntrada, problemaDescricao, observacao) 
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'''
-            self.execute_query(
-                query,(
-                    patrimonio_id,
-                    regional_id,
-                    solicitante_id,
-                    classificacao_manutencao_id,
-                    prioridade,
-                    tipo_manutencao,
-                    data_entrada,
-                    descricao_problema,
-                    observacao,
-                    )
-            )
-        except Exception as e:
-            st.error(f'Erro ao registrar entrada: {e}')
+        self,
+        patrimonio_id: int,
+        regional_id: int,
+        solicitante_id: int,
+        manutencao_classificacao_id: int,
+        tipo_mao_de_obra_id: int,
+        tipo_manutencao_id: int,
+        prioridade: str,
+        dt_entrada: datetime.date,
+        dt_inicio_manutencao: datetime.date = None,
+        dt_termino_manutencao: datetime.date = None,
+        dt_saida: datetime.date = None,
+        mecanico_id: int = None,
+        qtd_horas_mecanico: int = None,
+        problema_descricao: str = None,
+        resolucao_do_problema: str = None,
+        observacao: str = None,
+        status_id: int = 1,
+        locais_id: int = None
+    ) -> None:
+        query = '''
+            INSERT INTO manutencoes (
+                patrimonio_id,
+                regional_id,
+                solicitante_id,
+                manutencao_classificacao_id,
+                tipo_mao_de_obra_id,
+                tipo_manutencao_id,
+                prioridade,
+                dt_entrada,
+                dt_inicio_manutencao,
+                dt_termino_manutencao,
+                dt_saida,
+                mecanico_id,
+                qtd_horas_mecanico,
+                problema_descricao,
+                resolucao_do_problema,
+                observacao,
+                status_id,
+                locais_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        '''
+
+        self.execute_query(query, (
+            patrimonio_id,
+            regional_id,
+            solicitante_id,
+            manutencao_classificacao_id,
+            tipo_mao_de_obra_id,
+            tipo_manutencao_id,
+            prioridade,
+            dt_entrada,
+            dt_inicio_manutencao,
+            dt_termino_manutencao,
+            dt_saida,
+            mecanico_id,
+            qtd_horas_mecanico,
+            problema_descricao,
+            resolucao_do_problema,
+            observacao,
+            status_id,
+            locais_id
+        ))
 
     def iniciar_manutencao(self, manutencao_id: int) -> None:
         try:
@@ -75,17 +109,16 @@ class ManutencoesModel(DatabaseManager):
                             mc.nome AS mecanico,
                             r.nome AS regional,
                             s.nome AS solicitante,
-                            m.descricao,
-                            m.tipo_mao_de_obra,
+                            m.problema_descricao AS descricao,
+                            m.tipo_mao_de_obra_id AS tipo_mao_de_obra,
                             mc2.nome AS classificacao_manutencao,
-                            m.tipo_manutecao,
-                            m.data_entrada,
-                            m.inicio_manutencao,
-                            m.previsao_termino,
-                            m.termino_manutencao,
+                            m.tipo_manutencao_id AS tipo_manutencao,
+                            m.dt_entrada AS data_entrada,
+                            m.dt_inicio_manutencao AS inicio_manutencao,
+                            m.dt_termino_manutencao AS termino_manutencao,
                             m.prioridade,
                             st.nome AS status,
-                            m.no_status_desde
+                            m.dt_ultima_atualizacao AS no_status_desde
                         FROM manutencoes m
                         JOIN patrimonios p ON m.patrimonio_id = p.id
                         JOIN mecanicos mc ON m.mecanico_id = mc.id

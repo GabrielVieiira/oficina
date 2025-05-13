@@ -5,7 +5,7 @@ class RegionaisService:
         self.reginal_model = RegionalModel()
 
     def listar_regionais(self) -> list:
-        return self.reginal_model.get_regional()
+        return self.reginal_model.get_regional() or []
     
     def regionais_selecao(self) -> list:
         try:

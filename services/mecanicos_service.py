@@ -5,7 +5,7 @@ class MecanicosService:
         self.mecanico_model = MecanicosModel()
 
     def listar_mecanicos(self) -> list:
-        return self.mecanico_model.get_mecanico()
+        return self.mecanico_model.get_mecanico() or []
     
     def mecanicos_selecao(self) -> list:
         try:
@@ -27,7 +27,7 @@ class MecanicosService:
             raise Exception(f'Erro ao recuperar informações de mecânicos: {e}')
 
 
-    def buscar_mecaniso(self, id: int) -> dict:
+    def buscar_mecanico(self, id: int) -> dict:
         return self.mecanico_model.get_mecanico_by_id(id)
     
     def _validar_dados_mecanico(self, nome: str, cargo_id: int, regional_id: int) -> None:
@@ -42,13 +42,8 @@ class MecanicosService:
            
     def cadastrar_mecanico(self, nome: str, cargo_id: int, regional_id: int) -> None:
         nome = nome.strip().upper()
-        try:
-            self._validar_dados_mecanico(nome, cargo_id, regional_id)
-            self.mecanico_model.create_mecanico(nome, cargo_id, regional_id)
-        except ValueError as ve:
-            raise ve
-        except Exception as e:
-            raise Exception(f"Erro ao cadastrar mecânico: {e}")
+        self._validar_dados_mecanico(nome, cargo_id, regional_id)
+        self.mecanico_model.create_mecanico(nome, cargo_id, regional_id)
 
     def listar_cargos(self) -> list:
-        return self.mecanico_model.get_cargos()
+        return self.mecanico_model.get_cargos() or []

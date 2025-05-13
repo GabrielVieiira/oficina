@@ -1,79 +1,66 @@
-import datetime
-
 from models.manutencoes_model import ManutencoesModel
+import datetime
 
 class ManutencoesService:
     def __init__(self):
         self.manutencoes_model = ManutencoesModel()
 
-    def _validar_dados_entrada(
-        self,
-        patrimonio_id: int,
-        regional_id: int,
-        solicitante_id:int,
-        classificacao_manutencao_id: int,
-        prioridade: str,
-        tipo_manutencao: str,
-        data_entrada:datetime.date,
-        descricao_problema
-        ) -> None:
-        if not patrimonio_id:
-            raise ValueError("O patrimônio não pode ser vazio.")
-        if not regional_id:
-            raise ValueError("A regional não pode ser vazia.")
-        if not solicitante_id:
-            raise ValueError("O solicitante não pode ser vazio.")
-        if not classificacao_manutencao_id:
-            raise ValueError("A classificação de manutenção não pode ser vazia.")
-        if not prioridade:
-            raise ValueError("A prioridade não pode ser vazia.")
-        if not tipo_manutencao:
-            raise ValueError("O tipo de manutenção não pode ser vazio.")
-        if not descricao_problema:
-            raise ValueError("A descrição do problema não pode ser vazia.")
-        if not data_entrada:
-            raise ValueError("A data de entrada não pode ser vazia.")
-    
-    def registrar_entrada(
-        self,
-        patrimonio_id: int,
-        regional_id: int,
-        solicitante_id:int,
-        classificacao_manutencao_id: int,
-        prioridade: str,
-        tipo_manutencao: str,
-        data_entrada:datetime.date,
-        descricao_problema: str,
-        observacao: str,
-        ) -> None:
+    def _validar_comum(self, **dados):
+        obrigatorios = ["patrimonio_id", "regional_id", "solicitante_id", "manutencao_classificacao_id", 
+                        "prioridade", "tipo_manutencao_id", "dt_entrada", 
+                        "problema_descricao", "observacao", "status_id", "locais_id", "qtd_horas_mecanico"]
+        for campo in obrigatorios:
+            if not dados.get(campo):
+                raise ValueError(f"O campo '{campo}' é obrigatório.")
+
+    def _validar_planejada(self, **dados):
+        self._validar_comum(**dados)
+
+    def _validar_iniciada(self, **dados):
+        self._validar_comum(**dados)
+        if not dados.get("mecanico_id"):
+            raise ValueError("O mecânico responsável deve ser informado.")
+        if not dados.get("dt_inicio_manutencao"):
+            raise ValueError("A data de início deve ser informada.")
+        if dados["dt_inicio_manutencao"] < dados["dt_entrada"]:
+            raise ValueError("A data de início não pode ser anterior à data de entrada.")
+        if not dados.get("tipo_mao_de_obra_id"):
+            raise ValueError("O tipo de mão de obra deve ser informado.")
+
+    def _validar_finalizada(self, **dados):
+        self._validar_iniciada(**dados)
+        if not dados.get("dt_termino_manutencao"):
+            raise ValueError("A data de término da manutenção deve ser informada.")
+        if dados["dt_termino_manutencao"] < dados["dt_inicio_manutencao"]:
+            raise ValueError("A data de término não pode ser anterior à data de início.")
+        if not dados.get("resolucao_do_problema"):
+            raise ValueError("A resolução do problema deve ser informada.")
+
+    def _cadastrar_planejada(self, **dados):
+        self._validar_planejada(**dados)
+        self.manutencoes_model.create_manutencao(**dados)
+
+    def _cadastrar_iniciada(self, **dados):
+        self._validar_iniciada(**dados)
+        self.manutencoes_model.create_manutencao(**dados)
+
+    def _cadastrar_finalizada(self, **dados):
+        self._validar_finalizada(**dados)
+        self.manutencoes_model.create_manutencao(**dados)
         
-        try:
-            self._validar_dados_entrada(
-                patrimonio_id,
-                regional_id,
-                solicitante_id,
-                classificacao_manutencao_id,
-                prioridade,
-                tipo_manutencao,
-                data_entrada,
-                descricao_problema,
-            )            
-                   
-            self.manutencoes_model.create_manutencao(
-                patrimonio_id,
-                regional_id,
-                solicitante_id,
-                classificacao_manutencao_id,
-                prioridade,
-                tipo_manutencao, data_entrada,
-                descricao_problema,
-                observacao,
-                )
-        except ValueError as ve:
-            raise ValueError(f"Erro de validação: {ve}")
-        except Exception as e:
-            raise Exception(f"Erro ao registrar entrada de manutenção: {e}")
-            
+    def cadastrar_manutencao(self, status_id: int, **dados) -> None:
+        handlers = {
+            1: self._cadastrar_planejada,
+            2: self._cadastrar_iniciada,
+            5: self._cadastrar_finalizada
+        }
+
+        handler = handlers.get(status_id)
+        if not handler:
+            raise ValueError(f"Status ID {status_id} não suportado para cadastro.")
+
+        dados["status_id"] = status_id
+        handler(**dados)
 
     def iniciar_manutencao(self, manutencao_id: int) -> None:
         self.manutencoes_model.iniciar_manutencao(manutencao_id)

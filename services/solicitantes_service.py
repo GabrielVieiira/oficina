@@ -15,13 +15,8 @@ class SolicitantesService:
     
     def cadastrar_solicitante(self, nome: str, regional: int) -> None:
         nome = nome.strip().upper()
-        try:
-            self._validar_dados_solicitante(nome, regional)
-            self.solicitantes_model.create_solicitante(nome, regional)
-        except ValueError as ve:
-            raise ve
-        except Exception as e:
-            raise Exception(f"Erro ao cadastrar solicitante: {e}")
+        self._validar_dados_solicitante(nome, regional)
+        self.solicitantes_model.create_solicitante(nome, regional)
 
     def listar_solicitantes(self) -> list:
         return self.solicitantes_model.get_solicitantes()

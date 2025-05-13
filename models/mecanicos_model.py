@@ -7,25 +7,20 @@ class MecanicosModel(DatabaseManager):
         super().__init__()
 
     def get_mecanico(self) -> list:
-        try:
-            query = ''' SELECT 
-                            mecanicos.id,
-                            mecanicos.nome,
-                            cargos.nome AS cargo,
-                            regionais.nome AS regional
-                        FROM mecanicos
-                        JOIN cargos ON mecanicos.cargo_id = cargos.id
-                        JOIN regionais ON mecanicos.regional_id = regionais.id;
-                        '''
-            mecanicos = self.fetch_all(query)
-            if mecanicos:
-                dados = [{'id':mecanico[0], 'nome':mecanico[1], 'cargo':mecanico[2], 'regional':mecanico[3]} for mecanico in mecanicos]
-                return dados
-            else:
-                return []
-        except Exception as e:
-            st.error(f'Erro ao recuperar informações de mecânico: {e}')
-            return []
+        query = ''' SELECT 
+                        mecanicos.id,
+                        mecanicos.nome,
+                        cargos.nome AS cargo,
+                        regionais.nome AS regional
+                    FROM mecanicos
+                    JOIN cargos ON mecanicos.cargo_id = cargos.id
+                    JOIN regionais ON mecanicos.regional_id = regionais.id;
+                    '''
+        mecanicos = self.fetch_all(query)
+        if mecanicos:
+            return mecanicos
+        else:
+            return False
 
     def get_mecanico_by_id(self, id: int) -> dict:
         try:
@@ -40,29 +35,19 @@ class MecanicosModel(DatabaseManager):
             return None
         
     def mecanico_ja_existe(self, nome: str) -> bool:
-        try:
-            query = '''SELECT * FROM mecanicos WHERE nome = ?'''
-            mecanico = self.fetch_one(query, (nome,))
-            return bool(mecanico)
-        except Exception as e:
-            raise Exception(f'Erro ao verificar mecânico: {e}')
+        query = '''SELECT * FROM mecanicos WHERE nome = ?'''
+        mecanico = self.fetch_one(query, (nome,))
+        return bool(mecanico)
     
     def create_mecanico(self, nome: str, cargo_id: int, regional_id: int) -> None:
-        try:
-            query = '''INSERT INTO mecanicos (nome, cargo_id, regional_id) VALUES (?, ?, ?)'''
-            self.execute_query(query, (nome, cargo_id, regional_id))
-        except Exception as e:
-            raise Exception(f'Erro ao cadastrar mecânico: {e}')
+        query = '''INSERT INTO mecanicos (nome, cargo_id, regional_id) VALUES (?, ?, ?)'''
+        self.execute_query(query, (nome, cargo_id, regional_id))
+
         
     def get_cargos(self,) -> list:
-        try:
-            query = 'SELECT * FROM cargos'
-            cargos = self.fetch_all(query)
-            if cargos:
-                dados = [{'id':cargo[0], 'nome':cargo[1]} for cargo in cargos]
-                return dados
-            else:
-                return []
-        except Exception as e:
-            st.error(f'Erro ao recuperar informações de cargos: {e}')
-            return []
+        query = 'SELECT * FROM cargos'
+        cargos = self.fetch_all(query)
+        if cargos:
+            return cargos
+        else:
+            return False

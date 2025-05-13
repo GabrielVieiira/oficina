@@ -1,5 +1,5 @@
 import sqlite3
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Dict
 
 
 class DatabaseManager:
@@ -16,12 +16,13 @@ class DatabaseManager:
             conn.execute(query, params)
             conn.commit()
 
-    def fetch_all(self, query: str, params: Optional[Tuple[Any, ...]] = None) -> List[Tuple]:
+    def fetch_all(self, query: str, params: Optional[Tuple[Any, ...]] = None) -> List[Dict]:
         if params is None:
             params = ()
         with self.connect() as conn:
+            conn.row_factory = sqlite3.Row  # transforma resultado em dict
             cursor = conn.execute(query, params)
-            return cursor.fetchall()
+            return [dict(row) for row in cursor.fetchall()]
 
     def fetch_one(self, query: str, params: Optional[Tuple[Any, ...]] = None) -> Optional[Tuple]:
         if params is None:

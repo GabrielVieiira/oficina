@@ -6,7 +6,7 @@ class CentroCustoService:
         self.centro_custo_model = CentroCustoModel()
 
     def listar_centros_custo(self) -> list:
-        return self.centro_custo_model.get_centros_custo()
+        return self.centro_custo_model.get_centros_custo() or []
 
     # def cadastrar_centro_custo(self, nome: str) -> None:
     #     try:
