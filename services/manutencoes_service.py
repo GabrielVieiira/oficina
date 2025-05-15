@@ -102,50 +102,22 @@ class ManutencoesService:
         except Exception as e:
             raise Exception(f'Erro ao recuperar informações de manutenção: {e}')
     
-    def atualizar_manutencao(
-        self,
-        id: int,
-        novo_status: int,
-        inicio_manutencao: datetime.date,
-        tipo_mao_de_obra: str,
-        tipo_manutencao: str,
-        nova_descricao: str,
-        data_entrada: datetime.date,
-        previsao_termino: datetime.date,
-        novo_mecanico: int,
-        prioridade: str,
-        data_termino_manutencao: datetime.date,
-    ) -> bool:
-        try:
-            self.manutencoes_model.atualizar_manutencao(
-                id,
-                novo_status,
-                inicio_manutencao,
-                tipo_mao_de_obra,
-                tipo_manutencao,
-                nova_descricao,
-                data_entrada,
-                previsao_termino,
-                novo_mecanico,
-                prioridade,
-                data_termino_manutencao
-            )
-            return True
-        except Exception as e:
-            print(f"Erro ao atualizar manutenção: {e}")
-            return False
-    
+    def atualizar_manutencao(self, **dados) -> bool:
+        
+        self.manutencoes_model.atualizar_manutencao(**dados)
+        
     def listar_em_andamento(self):
         return self.manutencoes_model.listar_em_andamento()
     
     def listar_concluidos(self):
         return self.manutencoes_model.get_manutencoes_concluidas()
     
-    def listar_todas(self):
-        return self.manutencoes_model.listar_todas()
-    
-    def listar_por_patrimonio(self, patrimonio_id):
-        return self.manutencoes_model.listar_por_patrimonio(patrimonio_id)
+    def listar_manutencoes_por_patrimonio(self, patrimonio_id):
+        return self.manutencoes_model.get_manutencoes_por_patrimonio(patrimonio_id)
     
     def listar_por_mecanico(self, mecanico_id):
         return self.manutencoes_model.listar_por_mecanico(mecanico_id)
+    
+    def excluir_manutencao(self, id: int) -> bool:
+        self.manutencoes_model.excluir_manutencao(id)
+        return True

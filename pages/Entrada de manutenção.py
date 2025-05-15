@@ -6,7 +6,6 @@ from services.manutencao_classificacoes_service import ManutencaoClassificacoesS
 from services.solicitantes_service import SolicitantesService
 from services.regionais_service import RegionaisService
 from services.manutencao_status_service import ManutencaoStatusService
-from services.manutencao_status_service import ManutencaoStatusService
 from services.tipo_manutencoes_service import TipoManutencaoService
 from services.tipo_mao_de_obra_service import TipoMaoDeObraService
 from services.locais_service import LocaisService
@@ -19,7 +18,6 @@ Classificacao = ManutencaoClassificacoesService()
 Solicitantes = SolicitantesService()
 Regionais = RegionaisService()
 ManutencoesStatus = ManutencaoStatusService()
-Status = ManutencaoStatusService()
 TipoManutencao = TipoManutencaoService()
 TipoMaoDeObra = TipoMaoDeObraService()
 Locais = LocaisService()
@@ -32,7 +30,7 @@ st.markdown("---")
 
 status_inicial = st.selectbox(
     "🚦 Status Inicial da Manutenção",
-    Status.status_permitidos_para_criacao(),
+    ManutencoesStatus.status_permitidos_para_criacao(),
     format_func=lambda x: x['nome'],
     key="manutencao_iniciada_select"
 )
@@ -86,7 +84,7 @@ with st.form("entrada_form"):
         )
 
     col9, col10 = st.columns(2)
-    qtd_horas_mecanico = col9.number_input("⏱️ Horas Previstas de Mecânico", format="%d")
+    qtd_horas_mecanico = col9.number_input("⏱️ Horas Previstas de Mecânico", format="%d", step=1)
     tipo_mao_obra = col10.radio("🧑‍🏭 Tipo de Mão de Obra", TipoMaoDeObra.listar_tipos_mao_de_obra(), format_func=lambda x: x['nome'], horizontal=True)
     mecanico = None
     data_inicio = None
