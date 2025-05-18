@@ -49,12 +49,11 @@ if manutencoes:
         status_id = next((s["id"] for s in status_list if s["nome"] == filtro_status), None)
         manutencoes = [m for m in manutencoes if m["status_id"] == status_id]
 
-    if filtro_patrimonio:
+    if filtro_patrimonio['id']:
         manutencoes = [m for m in manutencoes if m["patrimonio_id"] == filtro_patrimonio["id"]]
 
-
     for manutencao in manutencoes:
-        with st.expander(f"Manutenção #{manutencao['id']}"):    
+        with st.expander(f"Manutenção #{manutencao['id']}"):
             col1, col2, col3 = st.columns(3)
 
             patrimonio = col1.selectbox(
@@ -91,7 +90,7 @@ if manutencoes:
                 index=[c["id"] for c in ClassificacaoManutencao.listar_manutencao_classificacoes()].index(manutencao["manutencao_classificacao_id"]) if manutencao["patrimonio_id"] else 0,
                 key=f"classificacao_{manutencao['id']}"
             )
-            
+
             prioridade = col5.selectbox(
                 "⚠️ Prioridade",
                 ["", "Baixa", "Média", "Alta"],
@@ -113,7 +112,7 @@ if manutencoes:
                 value=manutencao["dt_entrada"],
                 key=f"data_entrada_{manutencao['id']}",
                 )
-            
+
             status_manutencao = col8.selectbox(
                 "🚦 Status da Manutenção",
                 status_list,
@@ -121,7 +120,7 @@ if manutencoes:
                 index=[s["id"] for s in status_list].index(manutencao["status_id"]),
                 key=f"status_manutencao_{manutencao['id']}"
                 )
-            
+
             tipo_manutencao = st.radio(
                 "🛠 Tipo de Manutenção",
                 TipoManutencao.listar_tipos_manutencao(),
@@ -145,7 +144,7 @@ if manutencoes:
                 horizontal=True,
                 key=f"tipo_mao_obra_{manutencao['id']}"
                 )
-            
+
             mecanico = None
             data_inicio = None
             data_termino = None
@@ -159,7 +158,7 @@ if manutencoes:
                     format_func=lambda x: f"{x['nome']} ({x['cargo']})",
                     key=f"mecanico_{manutencao['id']}"
                     )
-                
+
                 data_inicio = col9.date_input(
                     "📆 Início da Manutenção",
                     format="DD/MM/YYYY",
@@ -168,7 +167,7 @@ if manutencoes:
                     key=f"data_inicio_{manutencao['id']}",
                     )
 
-            if status_manutencao['nome'] == "FINALIZADO":  
+            if status_manutencao['nome'] == "FINALIZADO":
                 data_termino = col9.date_input(
                     "🏁 Término da Manutenção",
                     format="DD/MM/YYYY",
@@ -176,7 +175,7 @@ if manutencoes:
                     min_value=data_inicio,
                     key=f"data_termino_{manutencao['id']}",
                     )
-                
+
                 resolucao_problema = st.text_area(
                     "🔧 Resolução do Problema",
                     height=80,
@@ -192,7 +191,7 @@ if manutencoes:
                 placeholder="Descreva o problema encontrado",
                 key=f"descricao_problema_{manutencao['id']}",
                 )
-            
+
             observacao = st.text_area(
                 "🗒️ Observações",
                 height=80,
@@ -200,14 +199,14 @@ if manutencoes:
                 placeholder="Adicione observações adicionais",
                 key=f"observacao_{manutencao['id']}",
                 )
-            
+
             col11, col12 = st.columns(2)
-            
+
             botao_atualizar = col11.button(
                 "✅ Atualizar",
                 key=f"atualizar_{manutencao['id']}",
             )
-            
+
             if botao_atualizar:
                 try:
                     Manutencoes.atualizar_manutencao(
@@ -233,7 +232,7 @@ if manutencoes:
                     st.success("✅ Atualização salva com sucesso!")
                 except Exception as e:
                     st.error(f"❌ Falha ao atualizar manutenção: {e}")
-            
+
             botao_excluir = col12.button(
                 "❌ Excluir",
                 key=f"excluir_{manutencao['id']}",

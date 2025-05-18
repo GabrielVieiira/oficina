@@ -6,8 +6,8 @@ class ManutencoesService:
         self.manutencoes_model = ManutencoesModel()
 
     def _validar_comum(self, **dados):
-        obrigatorios = ["patrimonio_id", "regional_id", "solicitante_id", "manutencao_classificacao_id", 
-                        "prioridade", "tipo_manutencao_id", "dt_entrada", 
+        obrigatorios = ["patrimonio_id", "regional_id", "solicitante_id", "manutencao_classificacao_id",
+                        "prioridade", "tipo_manutencao_id", "dt_entrada",
                         "problema_descricao", "observacao", "status_id", "locais_id", "qtd_horas_mecanico"]
         for campo in obrigatorios:
             if not dados.get(campo):
@@ -47,7 +47,7 @@ class ManutencoesService:
     def _cadastrar_finalizada(self, **dados):
         self._validar_finalizada(**dados)
         self.manutencoes_model.create_manutencao(**dados)
-        
+
     def cadastrar_manutencao(self, status_id: int, **dados) -> None:
         handlers = {
             1: self._cadastrar_planejada,
@@ -62,23 +62,14 @@ class ManutencoesService:
         dados["status_id"] = status_id
         handler(**dados)
 
-    def iniciar_manutencao(self, manutencao_id: int) -> None:
-        self.manutencoes_model.iniciar_manutencao(manutencao_id)
-
-    def concluir_manutencao(self, manutencao_id: int, solucao: str, custo: float) -> None:
-        self.manutencoes_model.concluir_manutencao(manutencao_id, solucao, custo)
-
-    def registrar_saida(self, manutencao_id: int) -> None:
-        self.manutencoes_model.registrar_saida(manutencao_id)
-
     def listar_manutencoes(self):
         return self.manutencoes_model.get_all_manutencoes()
-    
+
     def manutencao_selecao(self) -> list:
         try:
             manutencoes = self.manutencoes_model.get_all_manutencoes()
             dicionario_em_branco = {
-                        'id': None, 
+                        'id': None,
                         'numero_patrimonio': '',
                         'mecanico_nome': '',
                         'regional_nome': '',
@@ -101,23 +92,26 @@ class ManutencoesService:
                 return [dicionario_em_branco]
         except Exception as e:
             raise Exception(f'Erro ao recuperar informações de manutenção: {e}')
-    
+
     def atualizar_manutencao(self, **dados) -> bool:
-        
+
         self.manutencoes_model.atualizar_manutencao(**dados)
-        
-    def listar_em_andamento(self):
-        return self.manutencoes_model.listar_em_andamento()
-    
+
     def listar_concluidos(self):
         return self.manutencoes_model.get_manutencoes_concluidas()
-    
+
     def listar_manutencoes_por_patrimonio(self, patrimonio_id):
         return self.manutencoes_model.get_manutencoes_por_patrimonio(patrimonio_id)
-    
-    def listar_por_mecanico(self, mecanico_id):
-        return self.manutencoes_model.listar_por_mecanico(mecanico_id)
-    
+
     def excluir_manutencao(self, id: int) -> bool:
         self.manutencoes_model.excluir_manutencao(id)
         return True
+
+    def manutencoes_iniciadas(self, data_inicio: datetime, data_fim: datetime) -> list[dict]:
+        return self.manutencoes_model.get_manutencoes_iniciadas(data_inicio, data_fim)
+
+    def manutencoes_finalizadas(self, data_inicio: datetime, data_fim: datetime) -> list[dict]:
+        return self.manutencoes_model.get_manutencoes_finalizadas(data_inicio, data_fim)
+
+    def listar_patrimonios_em_manutencao(self) -> list[dict]:
+        return self.manutencoes_model.get_patrimonios_em_manutencao()
