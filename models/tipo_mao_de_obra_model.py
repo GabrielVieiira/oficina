@@ -13,10 +13,10 @@ class TipoMaoDeObraModel(DatabaseManager):
         query = '''INSERT INTO tipoMaoDeObra (nome) VALUES (?)'''
         self.execute_query(query, (nome,))
         
-    def get_tipos_mao_de_obra(self) -> list:
+    def get_tipos_mao_de_obra(self) -> list[dict]:
         query = '''SELECT * FROM tipoMaoDeObra'''
         tipos_mao_de_obra = self.fetch_all(query)
         if tipos_mao_de_obra:
             return tipos_mao_de_obra
         else:
-            return False
+            return []

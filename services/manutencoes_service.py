@@ -93,7 +93,7 @@ class ManutencoesService:
         except Exception as e:
             raise Exception(f'Erro ao recuperar informações de manutenção: {e}')
 
-    def atualizar_manutencao(self, **dados) -> bool:
+    def atualizar_manutencao(self, **dados) -> None:
 
         self.manutencoes_model.atualizar_manutencao(**dados)
 
@@ -103,14 +103,13 @@ class ManutencoesService:
     def listar_manutencoes_por_patrimonio(self, patrimonio_id):
         return self.manutencoes_model.get_manutencoes_por_patrimonio(patrimonio_id)
 
-    def excluir_manutencao(self, id: int) -> bool:
+    def excluir_manutencao(self, id: int) -> None:
         self.manutencoes_model.excluir_manutencao(id)
-        return True
 
-    def manutencoes_iniciadas(self, data_inicio: datetime, data_fim: datetime) -> list[dict]:
+    def manutencoes_iniciadas(self, data_inicio: datetime.date, data_fim: datetime.date) -> list[dict]:
         return self.manutencoes_model.get_manutencoes_iniciadas(data_inicio, data_fim)
 
-    def manutencoes_finalizadas(self, data_inicio: datetime, data_fim: datetime) -> list[dict]:
+    def manutencoes_finalizadas(self, data_inicio: datetime.date, data_fim: datetime.date) -> list[dict]:
         return self.manutencoes_model.get_manutencoes_finalizadas(data_inicio, data_fim)
 
     def listar_patrimonios_em_manutencao(self) -> list[dict]:

@@ -47,3 +47,6 @@ class MecanicosService:
 
     def listar_cargos(self) -> list:
         return self.mecanico_model.get_cargos() or []
+    
+    def excluir_mecanico(self, id: int) -> None:
+        self.mecanico_model.delete_mecanico(id)

@@ -4,10 +4,10 @@ class ManutencaoClassificacaoModel(DatabaseManager):
     def __init__(self):
         super().__init__()
 
-    def get_manutencao_classificacoes(self) -> list:
+    def get_manutencao_classificacoes(self) -> list[dict]:
         query = 'SELECT * FROM manutencaoClassificacao'
         classificacoes = self.fetch_all(query)
         if classificacoes:
             return classificacoes
         else:
-            return False
+            return []

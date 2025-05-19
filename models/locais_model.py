@@ -5,7 +5,7 @@ class LocaisModel(DatabaseManager):
     def __init__(self):
         super().__init__()
 
-    def get_locais(self) -> list:
+    def get_locais(self) -> list[dict]:
         query = ''' SELECT 
                         localidades.id,
                         localidades.nome,
@@ -17,7 +17,7 @@ class LocaisModel(DatabaseManager):
         if locais:
             return locais
         else:
-            return False
+            return []
         
     def local_ja_existe(self, nome: str) -> bool:
         query = '''SELECT COUNT(*) FROM localidades WHERE nome = ?'''

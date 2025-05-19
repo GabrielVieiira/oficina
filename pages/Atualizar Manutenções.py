@@ -172,7 +172,7 @@ if manutencoes:
                     "🏁 Término da Manutenção",
                     format="DD/MM/YYYY",
                     value=manutencao["dt_termino_manutencao"],
-                    min_value=data_inicio,
+                    min_value=manutencao["dt_entrada"],
                     key=f"data_termino_{manutencao['id']}",
                     )
 

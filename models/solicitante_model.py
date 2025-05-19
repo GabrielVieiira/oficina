@@ -13,7 +13,7 @@ class SolicitantesModel(DatabaseManager):
         query = '''INSERT INTO solicitantes (nome, regional_id) VALUES (?, ?)'''
         self.execute_query(query, (nome, regional))
     
-    def get_solicitantes(self) -> list:
+    def get_solicitantes(self) -> list[dict]:
         query = ''' SELECT
                         solicitantes.id,
                         solicitantes.nome,
@@ -24,4 +24,8 @@ class SolicitantesModel(DatabaseManager):
         if solicitantes:
             return solicitantes
         else:
-            return False
+            return []
+        
+    def delete_solicitante(self, id: int) -> None:
+        query = '''DELETE FROM solicitantes WHERE id = ?'''
+        self.execute_query(query, (id,))

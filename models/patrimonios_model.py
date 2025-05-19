@@ -6,7 +6,7 @@ class PatrimoniosModel(DatabaseManager):
     def __init__(self):
         super().__init__()
 
-    def get_patrimonio(self) -> list:
+    def get_patrimonio(self) -> list[dict]:
         query = ''' SELECT 
                             patrimonios.id,
                             patrimonios.numeroPatrimonio,
@@ -21,19 +21,15 @@ class PatrimoniosModel(DatabaseManager):
         if patrimonios:
             return patrimonios
         else:
-            return False
+            return []
         
     def get_patrimonio_by_id(self, id: int) -> dict:
-        try:
-            query = f'SELECT * FROM patrimonio WHERE id = {id}'
-            patrimonio = self.fetch_one(query)
-            if patrimonio:
-                return patrimonio.fetchone()
-            else:
-                return None
-        except Exception as e:
-            st.error(f'Erro ao recuperar informações de patrimônio: {e}')
-            return None
+        query = f'SELECT * FROM patrimonio WHERE id = {id}'
+        patrimonio = self.fetch_one(query)
+        if patrimonio:
+            return patrimonio
+        else:
+            return {}
         
     def patrimonio_ja_existe(self, numero: str) -> bool:
         query = f'SELECT * FROM patrimonios WHERE numeroPatrimonio = ?'
@@ -76,4 +72,9 @@ class PatrimoniosModel(DatabaseManager):
             classificacao_id,
             proprio
         )
+        self.execute_query(query, params)
+        
+    def delete_patrimonio(self, id: int) -> None:
+        query = "DELETE FROM patrimonios WHERE id = ?"
+        params = (id,)
         self.execute_query(query, params)

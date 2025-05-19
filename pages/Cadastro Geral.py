@@ -46,8 +46,16 @@ with tab1:
         if mecanicos:
             for m in mecanicos:
                 with st.container():
-                    st.write(f"**Nome:** {m['nome']}  |  **Cargo:** {m['cargo']}  |  **Regional:** {m['regional']}")
-                    st.divider()
+                    col1, col2 = st.columns([5, 1])
+                    col1.markdown(f"**Nome:** {m['nome']}  |  **Cargo:** {m['cargo']}  |  **Regional:** {m['regional']}")
+                    if col2.button("🗑️ Excluir", key=f"excluir_{m['id']}"):
+                        try:
+                            Mecanicos.excluir_mecanico(m['id'])
+                            st.success(f"Mecânico '{m['nome']}' excluído com sucesso!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erro ao excluir mecânico: {e}")
+                st.divider()
         else:
             st.warning("Nenhum mecânico cadastrado.")
             
@@ -82,12 +90,25 @@ with tab2:
 
     with st.expander("👀 Visualizar Patrimônios"):
         patrimonios = Patrimonios.listar_patrimonios()
-        
+
         if patrimonios:
             for p in patrimonios:
-                st.markdown(f"**#{p['numeroPatrimonio']}**")
-                st.markdown(f"🧾 Centro de Custo: {p['centroDeCusto']} | Classificação: {p['classificacao']}")
-                st.markdown(f"🚩 Próprio: {'✅ Sim' if p['proprio'] else '❌ Não'}")
+                with st.container():
+                    col1, col2 = st.columns([4, 1])
+
+                    with col1:
+                        st.markdown(f"**#{p['numeroPatrimonio']}**")
+                        st.markdown(f"🧾 Centro de Custo: {p['centroDeCusto']} | Classificação: {p['classificacao']}")
+                        st.markdown(f"🚩 Próprio: {'✅ Sim' if p['proprio'] else '❌ Não'}")
+
+                    with col2:
+                            if st.button("🗑️ Excluir"):
+                                try:
+                                    Patrimonios.excluir_patrimonio(p['id'])
+                                    st.success(f"✅ Patrimônio `{p['numeroPatrimonio']}` excluído com sucesso!")
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"❌ Erro ao excluir: {e}")
                 st.divider()
         else:
             st.warning("Nenhum patrimônio cadastrado.")
@@ -114,6 +135,22 @@ with tab3:
         solicitantes = Solicitantes.listar_solicitantes()
         if solicitantes:
             for s in solicitantes:
+                with st.container():
+                    col1, col2 = st.columns([4, 1])
+
+                    with col1:
+                        st.markdown(f"**#{s['id']}**")
+                        st.markdown(f"🧾 Regional: {s['regional']}")
+                        st.markdown(f"📋 Nome: {s['nome']}")
+
+                    with col2:
+                        if st.button("🗑️ Excluir", key=f"excluir_{s['id']}"):
+                            try:
+                                Solicitantes.excluir_solicitante(s['id'])
+                                st.success(f"✅ Solicitante `{s['nome']}` excluído com sucesso!")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"❌ Erro ao excluir: {e}")
                 st.markdown(f"**Nome:** {s['nome']} | **Regional:** {s['regional']}")
                 st.divider()
         else:

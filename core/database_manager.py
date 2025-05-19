@@ -24,9 +24,11 @@ class DatabaseManager:
             cursor = conn.execute(query, params)
             return [dict(row) for row in cursor.fetchall()]
 
-    def fetch_one(self, query: str, params: Optional[Tuple[Any, ...]] = None) -> Optional[Tuple]:
+    def fetch_one(self, query: str, params: Optional[Tuple[Any, ...]] = None) -> Optional[Dict[str, Any]]:
         if params is None:
             params = ()
         with self.connect() as conn:
+            conn.row_factory = sqlite3.Row  # converte o resultado para dict
             cursor = conn.execute(query, params)
-            return cursor.fetchone()
+            row = cursor.fetchone()
+            return dict(row) if row else None

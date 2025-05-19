@@ -80,7 +80,7 @@ class ManutencoesModel(DatabaseManager):
             locais_id
         ))
 
-    def get_all_manutencoes(self) -> list:
+    def get_all_manutencoes(self) -> list[dict]:
         query = ''' SELECT
                         id,
                         patrimonio_id,
@@ -106,7 +106,7 @@ class ManutencoesModel(DatabaseManager):
         if manutencoes:
             return manutencoes
         else:
-            return False
+            return []
 
     def atualizar_manutencao(
         self,
@@ -170,7 +170,7 @@ class ManutencoesModel(DatabaseManager):
             st.error(f'Erro ao listar pendências: {e}')
             return []
 
-    def get_manutencoes_por_patrimonio(self, patrimonio_id: int) -> list:
+    def get_manutencoes_por_patrimonio(self, patrimonio_id: int) -> list[dict]:
         query = ''' SELECT
                         *
                     FROM manutencoes
@@ -179,7 +179,7 @@ class ManutencoesModel(DatabaseManager):
         if manutencoes:
             return manutencoes
         else:
-            return False
+            return []
 
     def get_manutencoes_abertas_por_patrimonio(self, patrimonio_id: int):
         manutencoes = self.get_manutencoes_por_patrimonio(patrimonio_id)
@@ -190,7 +190,7 @@ class ManutencoesModel(DatabaseManager):
         query = '''DELETE FROM manutencoes WHERE id = ?'''
         self.execute_query(query, (id,))
 
-    def get_manutencoes_iniciadas(self, data_inicio: datetime, data_fim: datetime) -> list[dict]:
+    def get_manutencoes_iniciadas(self, data_inicio: datetime.date, data_fim: datetime.date) -> list[dict]:
         query = '''
                 SELECT
                     m.id,
@@ -215,9 +215,13 @@ class ManutencoesModel(DatabaseManager):
                 AND m.dt_entrada BETWEEN ? AND ?
                 ORDER BY m.dt_entrada DESC;
         '''
-        return self.fetch_all(query, (data_inicio, data_fim))
+        manutencoes_iniciadas = self.fetch_all(query, (data_inicio, data_fim))
+        if manutencoes_iniciadas:
+            return self.fetch_all(query, (data_inicio, data_fim))
+        else:
+            return []
 
-    def get_manutencoes_finalizadas(self, data_inicio: datetime, data_fim: datetime) -> list[dict]:
+    def get_manutencoes_finalizadas(self, data_inicio: datetime.date, data_fim: datetime.date) -> list[dict]:
         query = '''
                 SELECT
                     m.id,
@@ -240,7 +244,11 @@ class ManutencoesModel(DatabaseManager):
                 AND m.dt_termino_manutencao BETWEEN ? AND ?
                 ORDER BY m.dt_termino_manutencao DESC;
         '''
-        return self.fetch_all(query, (data_inicio, data_fim))
+        manutencoes_finalizadas = self.fetch_all(query, (data_inicio, data_fim))
+        if manutencoes_finalizadas:
+            return self.fetch_all(query, (data_inicio, data_fim))
+        else:
+            return []
 
     def get_patrimonios_em_manutencao(self) -> list[dict]:
         query = '''
@@ -257,4 +265,8 @@ class ManutencoesModel(DatabaseManager):
             WHERE m.dt_saida IS NULL
             ORDER BY m.dt_entrada ASC
         '''
-        return self.fetch_all(query)
+        patrimonios_em_manutencao = self.fetch_all(query)
+        if patrimonios_em_manutencao:
+            return patrimonios_em_manutencao
+        else:
+            return []

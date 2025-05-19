@@ -4,10 +4,10 @@ class CentroCustoModel(DatabaseManager):
     def __init__(self):
         super().__init__()
 
-    def get_centros_custo(self) -> list:
+    def get_centros_custo(self) -> list[dict]:
         query = 'SELECT * FROM centroDeCusto'
         centros_custo = self.fetch_all(query)
         if centros_custo:
             return centros_custo
         else:
-            return False
+            return []

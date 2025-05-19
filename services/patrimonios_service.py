@@ -63,3 +63,6 @@ class PatrimoniosService:
             classificacao_id,
             proprio
         )
+        
+    def excluir_patrimonio(self, patrimonio_id: int) -> None:        
+        self.patrimonio_model.delete_patrimonio(patrimonio_id)

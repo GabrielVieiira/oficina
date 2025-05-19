@@ -35,3 +35,6 @@ class SolicitantesService:
                 return [dicionario_em_branco]
         except Exception as e:
             raise Exception(f'Erro ao recuperar informações de solicitantes: {e}')
+        
+    def excluir_solicitante(self, id: int) -> None:
+        self.solicitantes_model.delete_solicitante(id)

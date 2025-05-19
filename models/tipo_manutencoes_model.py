@@ -14,10 +14,10 @@ class TipoManutencaoModel(DatabaseManager):
         query = '''INSERT INTO tipoManutencao (nome) VALUES (?)'''
         self.execute_query(query, (nome,))
         
-    def get_tipos_manutencao(self) -> list:
+    def get_tipos_manutencao(self) -> list[dict]:
         query = '''SELECT * FROM tipoManutencao'''
         tipos_manutencao = self.fetch_all(query)
         if tipos_manutencao:
             return tipos_manutencao
         else:
-            return False
+            return []
