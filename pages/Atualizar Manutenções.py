@@ -9,6 +9,7 @@ from services.manutencao_status_service import ManutencaoStatusService
 from services.tipo_manutencoes_service import TipoManutencaoService
 from services.tipo_mao_de_obra_service import TipoMaoDeObraService
 from services.locais_service import LocaisService
+from services.prioridades_service import PrioridadesService
 
 
 Manutencoes = ManutencoesService()
@@ -21,6 +22,7 @@ ManutencoesStatus = ManutencaoStatusService()
 TipoManutencao = TipoManutencaoService()
 TipoMaoDeObra = TipoMaoDeObraService()
 Locais = LocaisService()
+Prioridades = PrioridadesService()
 
 
 st.title("🔧 Atualizar Manutenções")
@@ -36,8 +38,9 @@ filtro_status = col1.selectbox(
 filtro_patrimonio = col2.selectbox(
     "Filtrar por Patrimônio",
     Patrimonios.patrimonios_selecao(),
-    format_func=lambda x: f"{x['numeroPatrimonio']} - {x['modelo']}"
+    format_func=lambda x: f"{x['numero_do_patrimonio']} - {x['modelo']}"
 )
+
 
 manutencoes = Manutencoes.listar_manutencoes()
 mecanicos = Mecanicos.listar_mecanicos()
@@ -59,7 +62,7 @@ if manutencoes:
             patrimonio = col1.selectbox(
                 "🔍 Patrimônio",
                 Patrimonios.listar_patrimonios(),
-                format_func=lambda x: f"{x['numeroPatrimonio']} - {x['modelo']}",
+                format_func=lambda x: f"{x['numero_do_patrimonio']} - {x['modelo']}",
                 index=[p["id"] for p in Patrimonios.listar_patrimonios()].index(manutencao["patrimonio_id"]) if manutencao["patrimonio_id"] else 0,
                 key=f"patrimonio_{manutencao['id']}",
                 disabled=True
@@ -87,13 +90,15 @@ if manutencoes:
                 "📋 Classificação",
                 ClassificacaoManutencao.listar_manutencao_classificacoes(),
                 format_func=lambda x: x['nome'],
-                index=[c["id"] for c in ClassificacaoManutencao.listar_manutencao_classificacoes()].index(manutencao["manutencao_classificacao_id"]) if manutencao["patrimonio_id"] else 0,
+                index=[c["id"] for c in ClassificacaoManutencao.listar_manutencao_classificacoes()].index(manutencao["classificacao_de_manutencao_id"]) if manutencao["patrimonio_id"] else 0,
                 key=f"classificacao_{manutencao['id']}"
             )
 
             prioridade = col5.selectbox(
                 "⚠️ Prioridade",
-                ["", "Baixa", "Média", "Alta"],
+                Prioridades.listar_prioridades(),
+                format_func=lambda x: x['nome'],
+                index=[p["id"] for p in Prioridades.listar_prioridades()].index(manutencao["prioridade_id"]) if manutencao["prioridade_id"] else 0,
                 key=f"prioridade_{manutencao['id']}"
             )
 
@@ -101,7 +106,7 @@ if manutencoes:
                 "📍 Local de Execução",
                 Locais.listar_locais(),
                 format_func=lambda x: x['nome'],
-                index=[l["id"] for l in Locais.listar_locais()].index(manutencao["locais_id"]) if manutencao["locais_id"] else 0,
+                index=[l["id"] for l in Locais.listar_locais()].index(manutencao["localidade_id"]) if manutencao["localidade_id"] else 0,
                 key=f"local_{manutencao['id']}"
             )
 
@@ -117,7 +122,7 @@ if manutencoes:
                 "🚦 Status da Manutenção",
                 status_list,
                 format_func=lambda x: x['nome'],
-                index=[s["id"] for s in status_list].index(manutencao["status_id"]),
+                index=[s["id"] for s in status_list].index(manutencao["status_de_manutencao_id"]),
                 key=f"status_manutencao_{manutencao['id']}"
                 )
 
@@ -151,13 +156,13 @@ if manutencoes:
             resolucao_problema = ""
 
             if status_manutencao['nome'] in ["INICIADO", "FINALIZADO"]:
-                mecanico = col9.selectbox(
-                    "👨‍🔧 Mecânico Responsável",
-                    Mecanicos.listar_mecanicos(),
-                    index=[m["id"] for m in mecanicos].index(manutencao["mecanico_id"]) if manutencao["mecanico_id"] else 0,
-                    format_func=lambda x: f"{x['nome']} ({x['cargo']})",
-                    key=f"mecanico_{manutencao['id']}"
-                    )
+                # mecanico = col9.selectbox(
+                #     "👨‍🔧 Mecânico Responsável",
+                #     Mecanicos.listar_mecanicos(),
+                #     index=[m["id"] for m in mecanicos].index(manutencao["mecanico_id"]) if manutencao["mecanico_id"] else 0,
+                #     format_func=lambda x: f"{x['nome']} ({x['cargo']})",
+                #     key=f"mecanico_{manutencao['id']}"
+                #     )
 
                 data_inicio = col9.date_input(
                     "📆 Início da Manutenção",
@@ -179,7 +184,7 @@ if manutencoes:
                 resolucao_problema = st.text_area(
                     "🔧 Resolução do Problema",
                     height=80,
-                    value=manutencao.get("resolucao_do_problema", ""),
+                    value=manutencao.get("problema_resolucao", ""),
                     placeholder="Descreva a resolução do problema",
                     key=f"resolucao_problema_{manutencao['id']}",
                     )

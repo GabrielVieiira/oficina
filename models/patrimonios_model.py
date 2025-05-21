@@ -9,14 +9,14 @@ class PatrimoniosModel(DatabaseManager):
     def get_patrimonio(self) -> list[dict]:
         query = ''' SELECT 
                             patrimonios.id,
-                            patrimonios.numeroPatrimonio,
-                            centroDeCusto.nome as centroDeCusto,
+                            patrimonios.numero_do_patrimonio,
+                            centros_de_custo.nome as centroDeCusto,
                             patrimonios.modelo,
-                            patrimonioClassificacao.nome AS classificacao,
+                            classificacoes_de_patrimonios.nome AS classificacao,
                             patrimonios.proprio
                     FROM patrimonios
-                    LEFT JOIN centroDeCusto ON patrimonios.centroDeCusto_id = centroDeCusto.id
-                    LEFT JOIN patrimonioClassificacao on patrimonios.classificacao_id = patrimonioClassificacao.id '''
+                    LEFT JOIN centros_de_custo ON patrimonios.centro_de_custo_id = centros_de_custo.id
+                    LEFT JOIN classificacoes_de_patrimonios on patrimonios.classificacao_id = classificacoes_de_patrimonios.id '''
         patrimonios = self.fetch_all(query)
         if patrimonios:
             return patrimonios
@@ -24,7 +24,7 @@ class PatrimoniosModel(DatabaseManager):
             return []
         
     def get_patrimonio_by_id(self, id: int) -> dict:
-        query = f'SELECT * FROM patrimonio WHERE id = {id}'
+        query = f'SELECT * FROM patrimonios WHERE id = {id}'
         patrimonio = self.fetch_one(query)
         if patrimonio:
             return patrimonio
@@ -32,21 +32,9 @@ class PatrimoniosModel(DatabaseManager):
             return {}
         
     def patrimonio_ja_existe(self, numero: str) -> bool:
-        query = f'SELECT * FROM patrimonios WHERE numeroPatrimonio = ?'
+        query = f'SELECT * FROM patrimonios WHERE numero_do_patrimonio = ?'
         patrimonio = self.fetch_one(query, (numero,))
         return bool(patrimonio)
-        
-    def _get_data_atual(self) -> str:
-        try:
-            query = 'SELECT datetime("now")'
-            data = self.fetch_one(query)
-            if data:
-                return data[0]
-            else:
-                return None
-        except Exception as e:
-            st.error(f'Erro ao recuperar data atual: {e}')
-            return None
     
     def create_patrimonio(
         self,
@@ -58,8 +46,8 @@ class PatrimoniosModel(DatabaseManager):
     ) -> None:
         query = """
             INSERT INTO patrimonios (
-                numeroPatrimonio,
-                centroDeCusto_id,
+                numero_do_patrimonio,
+                centro_de_custo_id,
                 modelo,
                 classificacao_id,
                 proprio

@@ -23,7 +23,7 @@ class MecanicosModel(DatabaseManager):
             return []
 
     def get_mecanico_by_id(self, id: int) -> dict:
-        query = f'SELECT * FROM mecanico WHERE id = {id}'
+        query = f'SELECT * FROM mecanicos WHERE id = {id}'
         mecanico = self.fetch_one(query)
         if mecanico:
             return mecanico

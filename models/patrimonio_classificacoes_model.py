@@ -5,7 +5,7 @@ class PatrimonioClassificacoesModel(DatabaseManager):
         super().__init__()
 
     def get_patrimonio_classificacoes(self) -> list[dict]:
-        query = 'SELECT * FROM patrimonioClassificacao'
+        query = 'SELECT * FROM classificacoes_de_patrimonios'
         classificacao = self.fetch_all(query)
         if classificacao:
             return classificacao

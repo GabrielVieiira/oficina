@@ -1,5 +1,6 @@
 import streamlit as st
 import datetime
+from typing import Optional
 
 from core.database_manager import DatabaseManager
 
@@ -9,7 +10,7 @@ class ManutencoesModel(DatabaseManager):
 
     def manutencao_ja_existe(self, patrimonio_id: int) -> bool:
         try:
-            query = '''SELECT * FROM manutencoes WHERE patrimonio_id = ? AND status_id = 1'''
+            query = '''SELECT * FROM manutencoes WHERE patrimonio_id = ? AND status_de_manutencao_id = 1'''
             manutencao = self.fetch_one(query, (patrimonio_id,))
             return bool(manutencao)
         except Exception as e:
@@ -20,64 +21,61 @@ class ManutencoesModel(DatabaseManager):
         patrimonio_id: int,
         regional_id: int,
         solicitante_id: int,
-        manutencao_classificacao_id: int,
-        tipo_mao_de_obra_id: int,
-        tipo_manutencao_id: int,
-        prioridade: str,
+        classificacao_de_manutencao_id: int,
+        tipo_de_mao_de_obra_id: int,
+        tipo_de_manutencao_id: int,
+        prioridade_id: str,
         dt_entrada: datetime.date,
-        dt_inicio_manutencao: datetime.date = None,
-        dt_termino_manutencao: datetime.date = None,
-        dt_saida: datetime.date = None,
-        mecanico_id: int = None,
-        qtd_horas_mecanico: int = None,
-        problema_descricao: str = None,
-        resolucao_do_problema: str = None,
-        observacao: str = None,
-        status_id: int = 1,
-        locais_id: int = None
+        status_de_manutencao_id: int,
+        qtd_horas_mecanico: int,
+        problema_descricao: str,
+        observacao: str,
+        localidade_id: int,
+        dt_inicio_manutencao: Optional[datetime.date] = None,
+        dt_termino_manutencao: Optional[datetime.date]  = None,
+        dt_saida: Optional[datetime.date] = None,
+        problema_resolucao: Optional[str] = None,
     ) -> None:
         query = '''
             INSERT INTO manutencoes (
                 patrimonio_id,
                 regional_id,
                 solicitante_id,
-                manutencao_classificacao_id,
-                tipo_mao_de_obra_id,
-                tipo_manutencao_id,
-                prioridade,
+                classificacao_de_manutencao_id,
+                tipo_de_mao_de_obra_id,
+                tipo_de_manutencao_id,
+                prioridade_id,
                 dt_entrada,
                 dt_inicio_manutencao,
                 dt_termino_manutencao,
                 dt_saida,
-                mecanico_id,
                 qtd_horas_mecanico,
                 problema_descricao,
-                resolucao_do_problema,
+                problema_resolucao,
                 observacao,
-                status_id,
-                locais_id
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                status_de_manutencao_id,
+                localidade_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         '''
 
         self.execute_query(query, (
             patrimonio_id,
             regional_id,
             solicitante_id,
-            manutencao_classificacao_id,
-            tipo_mao_de_obra_id,
-            tipo_manutencao_id,
-            prioridade,
+            classificacao_de_manutencao_id,
+            tipo_de_mao_de_obra_id,
+            tipo_de_manutencao_id,
+            prioridade_id,
             dt_entrada,
             dt_inicio_manutencao,
             dt_termino_manutencao,
             dt_saida,
-            mecanico_id,
             qtd_horas_mecanico,
             problema_descricao,
-            resolucao_do_problema,
+            problema_resolucao,
             observacao,
-            status_id,
-            locais_id
+            status_de_manutencao_id,
+            localidade_id
         ))
 
     def get_all_manutencoes(self) -> list[dict]:
@@ -86,20 +84,19 @@ class ManutencoesModel(DatabaseManager):
                         patrimonio_id,
                         regional_id,
                         solicitante_id,
-                        manutencao_classificacao_id,
-                        tipo_mao_de_obra_id,
-                        tipo_manutencao_id,
-                        prioridade,
+                        classificacao_de_manutencao_id,
+                        tipo_de_mao_de_obra_id,
+                        tipo_de_manutencao_id,
+                        prioridade_id,
                         dt_entrada,
                         dt_inicio_manutencao,
                         dt_termino_manutencao,
                         qtd_horas_mecanico,
                         problema_descricao,
-                        resolucao_do_problema,
+                        problema_resolucao,
                         observacao,
-                        status_id,
-                        locais_id,
-                        mecanico_id
+                        status_de_manutencao_id,
+                        localidade_id
                     FROM manutencoes
                     ORDER BY dt_entrada DESC; '''
         manutencoes = self.fetch_all(query)
@@ -194,24 +191,22 @@ class ManutencoesModel(DatabaseManager):
         query = '''
                 SELECT
                     m.id,
-                    p.numeroPatrimonio AS patrimonio,
+                    p.numero_do_patrimonio AS patrimonio,
                     m.dt_entrada,
-                    m.prioridade,
+                    m.prioridade_id,
                     s.nome AS status,
                     tm.nome AS tipo_manutencao,
                     mo.nome AS tipo_mao_obra,
                     r.nome AS regional,
-                    mc.nome AS classificacao,
-                    mec.nome AS mecanico
+                    mc.nome AS classificacao
                 FROM manutencoes m
                 LEFT JOIN patrimonios p ON m.patrimonio_id = p.id
-                LEFT JOIN status s ON m.status_id = s.id
-                LEFT JOIN tipoManutencao tm ON m.tipo_manutencao_id = tm.id
-                LEFT JOIN tipoMaoDeObra mo ON m.tipo_mao_de_obra_id = mo.id
+                LEFT JOIN status_de_manutencao s ON m.status_de_manutencao_id = s.id
+                LEFT JOIN tipo_de_manutencoes tm ON m.tipo_de_manutencao_id = tm.id
+                LEFT JOIN tipo_de_mao_de_obra mo ON m.tipo_de_mao_de_obra_id = mo.id
                 LEFT JOIN regionais r ON m.regional_id = r.id
-                LEFT JOIN manutencaoClassificacao mc ON m.manutencao_classificacao_id = mc.id
-                LEFT JOIN mecanicos mec ON m.mecanico_id = mec.id
-                WHERE m.status_id IN (1, 2)  -- Aguardando planejamento ou Iniciada
+                LEFT JOIN classificacoes_de_manutencao mc ON m.classificacao_de_manutencao_id = mc.id
+                WHERE m.status_de_manutencao_id IN (1, 2)  -- Aguardando planejamento ou Iniciada
                 AND m.dt_entrada BETWEEN ? AND ?
                 ORDER BY m.dt_entrada DESC;
         '''
@@ -225,22 +220,20 @@ class ManutencoesModel(DatabaseManager):
         query = '''
                 SELECT
                     m.id,
-                    p.numeroPatrimonio AS patrimonio,
+                    p.numero_do_patrimonio AS patrimonio,
                     m.dt_entrada,
                     m.dt_termino_manutencao,
                     m.qtd_horas_mecanico,
-                    m.resolucao_do_problema,
+                    m.problema_resolucao,
                     r.nome AS regional,
                     tm.nome AS tipo_manutencao,
-                    s.nome AS status,
-                    mec.nome AS mecanico
+                    s.nome AS status
                 FROM manutencoes m
                 LEFT JOIN patrimonios p ON m.patrimonio_id = p.id
-                LEFT JOIN status s ON m.status_id = s.id
-                LEFT JOIN tipoManutencao tm ON m.tipo_manutencao_id = tm.id
+                LEFT JOIN status_de_manutencao s ON m.status_de_manutencao_id = s.id
+                LEFT JOIN tipo_de_manutencoes tm ON m.tipo_de_manutencao_id = tm.id
                 LEFT JOIN regionais r ON m.regional_id = r.id
-                LEFT JOIN mecanicos mec ON m.mecanico_id = mec.id
-                WHERE m.status_id = 5  -- Finalizada
+                WHERE m.status_de_manutencao_id = 5  -- Finalizada
                 AND m.dt_termino_manutencao BETWEEN ? AND ?
                 ORDER BY m.dt_termino_manutencao DESC;
         '''
@@ -253,7 +246,7 @@ class ManutencoesModel(DatabaseManager):
     def get_patrimonios_em_manutencao(self) -> list[dict]:
         query = '''
             SELECT
-                p.numeroPatrimonio AS patrimonio,
+                p.numero_do_patrimonio AS patrimonio,
                 p.modelo,
                 r.nome AS regional,
                 m.dt_entrada,
@@ -261,7 +254,7 @@ class ManutencoesModel(DatabaseManager):
             FROM manutencoes m
             LEFT JOIN patrimonios p ON m.patrimonio_id = p.id
             LEFT JOIN regionais r ON m.regional_id = r.id
-            LEFT JOIN status s ON m.status_id = s.id
+            LEFT JOIN status_de_manutencao s ON m.status_de_manutencao_id = s.id
             WHERE m.dt_saida IS NULL
             ORDER BY m.dt_entrada ASC
         '''
@@ -270,3 +263,13 @@ class ManutencoesModel(DatabaseManager):
             return patrimonios_em_manutencao
         else:
             return []
+        
+    def buscar_id_ultima_manutencao(self, patrimonio_id: int) -> int:
+        query = '''SELECT max(id) AS id FROM manutencoes WHERE patrimonio_id = ?'''
+        manutencao = self.fetch_one(query, (patrimonio_id,))
+        return manutencao['id']
+    
+    def cadastrar_mecanicos(self, manutencao_id: int, mecanicos_id: list[int]) -> None:
+        for mecanico_id in mecanicos_id:
+            query = '''INSERT INTO manutencoes_mecanicos (manutencao_id, mecanico_id) VALUES (?, ?)'''
+            self.execute_query(query, (manutencao_id, mecanico_id))

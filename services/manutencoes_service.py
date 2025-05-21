@@ -6,9 +6,9 @@ class ManutencoesService:
         self.manutencoes_model = ManutencoesModel()
 
     def _validar_comum(self, **dados):
-        obrigatorios = ["patrimonio_id", "regional_id", "solicitante_id", "manutencao_classificacao_id",
-                        "prioridade", "tipo_manutencao_id", "dt_entrada",
-                        "problema_descricao", "observacao", "status_id", "locais_id", "qtd_horas_mecanico"]
+        obrigatorios = ["patrimonio_id", "regional_id", "solicitante_id", "classificacao_de_manutencao_id",
+                        "prioridade_id", "tipo_de_manutencao_id", "dt_entrada",
+                        "problema_descricao", "observacao", "status_de_manutencao_id", "localidade_id", "qtd_horas_mecanico"]
         for campo in obrigatorios:
             if not dados.get(campo):
                 raise ValueError(f"O campo '{campo}' é obrigatório.")
@@ -18,13 +18,13 @@ class ManutencoesService:
 
     def _validar_iniciada(self, **dados):
         self._validar_comum(**dados)
-        if not dados.get("mecanico_id"):
+        if not dados.get("mecanicos_id"):
             raise ValueError("O mecânico responsável deve ser informado.")
         if not dados.get("dt_inicio_manutencao"):
             raise ValueError("A data de início deve ser informada.")
         if dados["dt_inicio_manutencao"] < dados["dt_entrada"]:
             raise ValueError("A data de início não pode ser anterior à data de entrada.")
-        if not dados.get("tipo_mao_de_obra_id"):
+        if not dados.get("tipo_de_mao_de_obra_id"):
             raise ValueError("O tipo de mão de obra deve ser informado.")
 
     def _validar_finalizada(self, **dados):
@@ -33,33 +33,38 @@ class ManutencoesService:
             raise ValueError("A data de término da manutenção deve ser informada.")
         if dados["dt_termino_manutencao"] < dados["dt_inicio_manutencao"]:
             raise ValueError("A data de término não pode ser anterior à data de início.")
-        if not dados.get("resolucao_do_problema"):
+        if not dados.get("problema_resolucao"):
             raise ValueError("A resolução do problema deve ser informada.")
 
     def _cadastrar_planejada(self, **dados):
         self._validar_planejada(**dados)
+        dados.pop("mecanicos_id", None)
         self.manutencoes_model.create_manutencao(**dados)
 
     def _cadastrar_iniciada(self, **dados):
         self._validar_iniciada(**dados)
+        mecanicos_id = dados.pop("mecanicos_id", None)
         self.manutencoes_model.create_manutencao(**dados)
-
+        manutencao_id = self.manutencoes_model.buscar_id_ultima_manutencao(dados["patrimonio_id"])
+        self.manutencoes_model.cadastrar_mecanicos(manutencao_id, mecanicos_id)
+        
+        
+        
     def _cadastrar_finalizada(self, **dados):
         self._validar_finalizada(**dados)
-        self.manutencoes_model.create_manutencao(**dados)
+        # mecanicos = dados.pop("mecanicos_id", None)
+        # manutencao_id = self.manutencoes_model.create_manutencao(**dados)
 
-    def cadastrar_manutencao(self, status_id: int, **dados) -> None:
+    def cadastrar_manutencao(self, **dados) -> None:
         handlers = {
             1: self._cadastrar_planejada,
             2: self._cadastrar_iniciada,
             5: self._cadastrar_finalizada
         }
-
-        handler = handlers.get(status_id)
+    
+        handler = handlers.get(dados["status_de_manutencao_id"])
         if not handler:
-            raise ValueError(f"Status ID {status_id} não suportado para cadastro.")
-
-        dados["status_id"] = status_id
+            raise ValueError(f"Status ID {dados["status_de_manutencao_id"]} não suportado para cadastro.")
         handler(**dados)
 
     def listar_manutencoes(self):

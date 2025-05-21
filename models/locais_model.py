@@ -20,9 +20,9 @@ class LocaisModel(DatabaseManager):
             return []
         
     def local_ja_existe(self, nome: str) -> bool:
-        query = '''SELECT COUNT(*) FROM localidades WHERE nome = ?'''
-        result = self.fetch_one(query, (nome,))
-        return result[0] > 0
+        query = '''SELECT 1 FROM localidades WHERE nome = ? LIMIT 1'''
+        local = self.fetch_exists(query, (nome,))
+        return bool(local)
     
     def create_local(self, nome: str, regional_id: int) -> None:
         query = '''INSERT INTO localidades (nome, regional_id) VALUES (?, ?)'''

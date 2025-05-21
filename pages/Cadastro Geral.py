@@ -20,8 +20,8 @@ st.set_page_config(page_title="Cadastro", page_icon=":clipboard:", layout="wide"
 st.title("📋 GERENCIAR")
 
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["MECÂNICOS", "PATRIMÔMIOS", "SOLICITANTES", "LOCAIS", "PENDÊNCIAS"])
-with tab1:
+aba_mecanicos, aba_patrimonios, aba_solicitantes, aba_locais, tab5 = st.tabs(["MECÂNICOS", "PATRIMÔMIOS", "SOLICITANTES", "LOCAIS", "PENDÊNCIAS"])
+with aba_mecanicos:
     st.markdown("## 👨‍🔧 Cadastro de Mecânicos")
     st.markdown("---")
     
@@ -59,7 +59,7 @@ with tab1:
         else:
             st.warning("Nenhum mecânico cadastrado.")
             
-with tab2:
+with aba_patrimonios:
     st.markdown("## 🚜 Cadastro de Patrimônios")
     st.markdown("---")
 
@@ -97,15 +97,15 @@ with tab2:
                     col1, col2 = st.columns([4, 1])
 
                     with col1:
-                        st.markdown(f"**#{p['numeroPatrimonio']}**")
+                        st.markdown(f"**#{p['numero_do_patrimonio']}**")
                         st.markdown(f"🧾 Centro de Custo: {p['centroDeCusto']} | Classificação: {p['classificacao']}")
                         st.markdown(f"🚩 Próprio: {'✅ Sim' if p['proprio'] else '❌ Não'}")
 
                     with col2:
-                            if st.button("🗑️ Excluir"):
+                            if st.button("🗑️ Excluir", key=f'excluir_patrimonio{p['id']}'):
                                 try:
                                     Patrimonios.excluir_patrimonio(p['id'])
-                                    st.success(f"✅ Patrimônio `{p['numeroPatrimonio']}` excluído com sucesso!")
+                                    st.success(f"✅ Patrimônio `{p['numero_do_patrimonio']}` excluído com sucesso!")
                                     st.rerun()
                                 except Exception as e:
                                     st.error(f"❌ Erro ao excluir: {e}")
@@ -113,7 +113,7 @@ with tab2:
         else:
             st.warning("Nenhum patrimônio cadastrado.")
             
-with tab3:
+with aba_solicitantes:
     st.markdown("## 🧍 Cadastro de Solicitantes")
     st.markdown("---")
 
@@ -144,7 +144,7 @@ with tab3:
                         st.markdown(f"📋 Nome: {s['nome']}")
 
                     with col2:
-                        if st.button("🗑️ Excluir", key=f"excluir_{s['id']}"):
+                        if st.button("🗑️ Excluir", key=f"excluir_solicitante{s['id']}"):
                             try:
                                 Solicitantes.excluir_solicitante(s['id'])
                                 st.success(f"✅ Solicitante `{s['nome']}` excluído com sucesso!")
@@ -156,7 +156,7 @@ with tab3:
         else:
             st.warning("Nenhum solicitante cadastrado.")
 
-with tab4:
+with aba_locais:
     st.markdown("## 🗺️ Cadastro de Locais")
     st.markdown("---")
 

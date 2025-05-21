@@ -5,7 +5,7 @@ class ManutencaoStatusModel(DatabaseManager):
         super().__init__()
 
     def get_manutencao_status(self):
-        query = '''SELECT * FROM status'''
+        query = '''SELECT * FROM status_de_manutencao'''
         manutencoes_status = self.fetch_all(query)
         if manutencoes_status:
             return manutencoes_status
