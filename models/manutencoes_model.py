@@ -141,23 +141,23 @@ class ManutencoesModel(DatabaseManager):
             WHERE id = ?
         '''
         params = (
-            kwargs["status_de_manutencao_id"],
-            kwargs["patrimonio_id"],
-            kwargs["regional_id"],
-            kwargs["solicitante_id"],
-            kwargs["classificacao_de_manutencao_id"],
-            kwargs["prioridade_id"],
-            kwargs["tipo_de_manutencao_id"],
-            kwargs["dt_entrada"],
-            kwargs["problema_descricao"],
-            kwargs["observacao"],
-            kwargs.get("dt_inicio_manutencao"),
-            kwargs.get("dt_termino_manutencao"),
-            kwargs.get("tipo_de_mao_de_obra_id"),
-            kwargs["qtd_horas_mecanico"],
-            kwargs.get("localidade_id"),
-            kwargs.get("problema_resolucao"),
-            kwargs["id"]
+            kwargs['status_de_manutencao_id'],
+            kwargs['patrimonio_id'],
+            kwargs['regional_id'],
+            kwargs['solicitante_id'],
+            kwargs['classificacao_de_manutencao_id'],
+            kwargs['prioridade_id'],
+            kwargs['tipo_de_manutencao_id'],
+            kwargs['dt_entrada'],
+            kwargs['problema_descricao'],
+            kwargs['observacao'],
+            kwargs.get('dt_inicio_manutencao'),
+            kwargs.get('dt_termino_manutencao'),
+            kwargs.get('tipo_de_mao_de_obra_id'),
+            kwargs['qtd_horas_mecanico'],
+            kwargs.get('localidade_id'),
+            kwargs.get('problema_resolucao'),
+            kwargs['id']
         )
         self.execute_query(query, params)
 
@@ -289,10 +289,10 @@ class ManutencoesModel(DatabaseManager):
 
     def atualizar_mecanicos_da_manutencao(self, manutencao_id: int, mecanicos_ids: list[int]) -> None:
         # Remove todos os registros atuais
-        delete_query = "DELETE FROM manutencoes_mecanicos WHERE manutencao_id = ?"
+        delete_query = 'DELETE FROM manutencoes_mecanicos WHERE manutencao_id = ?'
         self.execute_query(delete_query, (manutencao_id,))
 
         # Insere os novos
-        insert_query = "INSERT INTO manutencoes_mecanicos (manutencao_id, mecanico_id) VALUES (?, ?)"
+        insert_query = 'INSERT INTO manutencoes_mecanicos (manutencao_id, mecanico_id) VALUES (?, ?)'
         for mecanico_id in mecanicos_ids:
             self.execute_query(insert_query, (manutencao_id, mecanico_id))

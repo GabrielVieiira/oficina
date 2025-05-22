@@ -44,7 +44,7 @@ class PatrimoniosModel(DatabaseManager):
         classificacao_id: int,
         proprio: bool
     ) -> None:
-        query = """
+        query = '''
             INSERT INTO patrimonios (
                 numero_do_patrimonio,
                 centro_de_custo_id,
@@ -52,7 +52,7 @@ class PatrimoniosModel(DatabaseManager):
                 classificacao_id,
                 proprio
             ) VALUES (?, ?, ?, ?, ?)
-        """
+        '''
         params = (
             numero,
             centro_de_custo_id,
@@ -63,6 +63,6 @@ class PatrimoniosModel(DatabaseManager):
         self.execute_query(query, params)
         
     def delete_patrimonio(self, id: int) -> None:
-        query = "DELETE FROM patrimonios WHERE id = ?"
+        query = 'DELETE FROM patrimonios WHERE id = ?'
         params = (id,)
         self.execute_query(query, params)

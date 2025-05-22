@@ -3,12 +3,12 @@ from typing import Any, List, Optional, Tuple, Dict
 
 
 class DatabaseManager:
-    def __init__(self, db_name: str = "oficina_manutencoes.db") -> None:
+    def __init__(self, db_name: str = 'oficina_manutencoes.db') -> None:
         self.db_name = db_name
 
     def connect(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.db_name)
-        conn.execute("PRAGMA foreign_keys = ON")  # Ativa as chaves estrangeiras
+        conn.execute('PRAGMA foreign_keys = ON')
         return conn
 
     def execute_query(self, query: str, params: Optional[Tuple[Any, ...]] = None) -> None:
@@ -22,7 +22,7 @@ class DatabaseManager:
         if params is None:
             params = ()
         with self.connect() as conn:
-            conn.row_factory = sqlite3.Row  # transforma resultado em dict
+            conn.row_factory = sqlite3.Row
             cursor = conn.execute(query, params)
             return [dict(row) for row in cursor.fetchall()]
 
@@ -30,7 +30,7 @@ class DatabaseManager:
         if params is None:
             params = ()
         with self.connect() as conn:
-            conn.row_factory = sqlite3.Row  # converte o resultado para dict
+            conn.row_factory = sqlite3.Row
             cursor = conn.execute(query, params)
             row = cursor.fetchone()
             return dict(row) if row else {}
