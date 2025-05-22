@@ -23,3 +23,6 @@ class LocaisService:
         nome = nome.strip().upper()
         self._validar_dados_local(nome, regional_id)
         self.local_model.create_local(nome, regional_id)
+
+    def excluir_localidade(self, local_id: int) -> None:
+        self.local_model.delete_local(local_id)

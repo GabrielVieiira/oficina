@@ -27,3 +27,7 @@ class LocaisModel(DatabaseManager):
     def create_local(self, nome: str, regional_id: int) -> None:
         query = '''INSERT INTO localidades (nome, regional_id) VALUES (?, ?)'''
         self.execute_query(query, (nome, regional_id))
+        
+    def delete_local(self, local_id: int) -> None:
+        query = '''DELETE FROM localidades WHERE id = ?'''
+        self.execute_query(query, (local_id,))

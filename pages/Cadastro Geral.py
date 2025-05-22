@@ -174,6 +174,31 @@ with aba_locais:
             except Exception as e:
                 st.error(f"❌ Erro ao cadastrar: {e}")
 
+    with st.expander("👀 Visualizar Localidades"):
+        localidades = Locais.listar_locais()
+        if localidades:
+            for l in localidades:
+                with st.container():
+                    col1, col2 = st.columns([4, 1])
+
+                    with col1:
+                        st.markdown(f"**#{l['id']}**")
+                        st.markdown(f"🧾 Localiadde: {l['nome']}")
+                        st.markdown(f"📋 regional: {l['regional']}")
+
+                    with col2:
+                        if st.button("🗑️ Excluir", key=f"excluir_localidade{l['id']}"):
+                            try:
+                                Locais.excluir_localidade(l['id'])
+                                st.success(f"✅ Localidade `{l['nome']}` excluída com sucesso!")
+                                st.rerun()
+                            except Exception as e:
+                                st.error(f"❌ Erro ao excluir: {e}")
+                st.markdown(f"**Nome:** {l['nome']} | **Regional:** {l['regional']}")
+                st.divider()
+        else:
+            st.warning("Nenhum solicitante cadastrado.")
+
 with tab5:
     with st.form("Cadastro de pendência", clear_on_submit=True):
         regional = st.selectbox(
