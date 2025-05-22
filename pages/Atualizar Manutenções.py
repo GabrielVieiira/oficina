@@ -50,7 +50,7 @@ if manutencoes:
 
     if filtro_status != "Todos":
         status_id = next((s["id"] for s in status_list if s["nome"] == filtro_status), None)
-        manutencoes = [m for m in manutencoes if m["status_id"] == status_id]
+        manutencoes = [m for m in manutencoes if m["status_de_manutencao_id"] == status_id]
 
     if filtro_patrimonio['id']:
         manutencoes = [m for m in manutencoes if m["patrimonio_id"] == filtro_patrimonio["id"]]
@@ -156,13 +156,14 @@ if manutencoes:
             resolucao_problema = ""
 
             if status_manutencao['nome'] in ["INICIADO", "FINALIZADO"]:
-                # mecanico = col9.selectbox(
-                #     "👨‍🔧 Mecânico Responsável",
-                #     Mecanicos.listar_mecanicos(),
-                #     index=[m["id"] for m in mecanicos].index(manutencao["mecanico_id"]) if manutencao["mecanico_id"] else 0,
-                #     format_func=lambda x: f"{x['nome']} ({x['cargo']})",
-                #     key=f"mecanico_{manutencao['id']}"
-                #     )
+                ids_mecanicos_manutencao = manutencao.get("mecanicos", [])
+                mecanicos_selecionados = col9.multiselect(
+                    "👨‍🔧 Mecânicos Responsáveis",
+                    options=Mecanicos.listar_mecanicos(),
+                    default=[m for m in Mecanicos.listar_mecanicos() if m["id"] in ids_mecanicos_manutencao],
+                    format_func=lambda x: f"{x['nome']} ({x['cargo']})",
+                    key=f"mecanicos_{manutencao['id']}"
+                )
 
                 data_inicio = col9.date_input(
                     "📆 Início da Manutenção",
@@ -215,24 +216,24 @@ if manutencoes:
             if botao_atualizar:
                 try:
                     Manutencoes.atualizar_manutencao(
-                        id= manutencao["id"],
-                        status_id= status_manutencao["id"],
-                        patrimonio_id= patrimonio["id"],
-                        regional_id= regional["id"],
-                        solicitante_id= solicitante["id"],
-                        manutencao_classificacao_id= manutencao_classificacao["id"],
-                        prioridade_id= prioridade,
-                        tipo_manutencao_id= tipo_manutencao["id"],
-                        dt_entrada= data_entrada,
-                        problema_descricao= descricao_problema,
-                        observacao= observacao,
-                        mecanico_id= mecanico["id"] if mecanico else None,
-                        dt_inicio_manutencao= data_inicio,
-                        dt_termino_manutencao= data_termino,
-                        tipo_mao_de_obra_id= tipo_mao_obra["id"] if tipo_mao_obra else None,
-                        qtd_horas_mecanico= qtd_horas_mecanico,
-                        locais_id= locais["id"],
-                        resolucao_do_problema= resolucao_problema,
+                        id=manutencao["id"],
+                        status_de_manutencao_id=status_manutencao["id"],
+                        patrimonio_id=patrimonio["id"],
+                        regional_id=regional["id"],
+                        solicitante_id=solicitante["id"],
+                        classificacao_de_manutencao_id=manutencao_classificacao["id"],
+                        prioridade_id=prioridade["id"] if isinstance(prioridade, dict) else prioridade,
+                        tipo_de_manutencao_id=tipo_manutencao["id"],
+                        dt_entrada=data_entrada,
+                        problema_descricao=descricao_problema,
+                        observacao=observacao,
+                        mecanicos_ids=[m["id"] for m in mecanicos_selecionados],
+                        dt_inicio_manutencao=data_inicio,
+                        dt_termino_manutencao=data_termino,
+                        tipo_de_mao_de_obra_id=tipo_mao_obra["id"],
+                        qtd_horas_mecanico=qtd_horas_mecanico,
+                        localidade_id=locais["id"],
+                        problema_resolucao=resolucao_problema,
                     )
                     st.success("✅ Atualização salva com sucesso!")
                 except Exception as e:
@@ -246,38 +247,3 @@ if manutencoes:
             )
 else:
     st.warning("⚠️ Nenhuma manutenção encontrada com os filtros aplicados.")
-        # with st.expander(f"Manutenção #{manutencao['id']}"):
-        #     with st.form(f"form_manutencao_{manutencao['id']}"):
-        #         col1, col2 = st.columns(2)
-
-        #         novo_status = col1.selectbox(
-        #             "Status",
-        #             status_list,
-        #             format_func=lambda x: x["nome"],
-        #             index=[s["id"] for s in status_list].index(manutencao["status_id"])
-        #         )
-
-        #         novo_mecanico = col2.selectbox(
-        #             "Mecânico",
-        #             mecanicos,
-        #             format_func=lambda x: f"{x['nome']} ({x['cargo']})",
-        #             index=[m["id"] for m in mecanicos].index(manutencao["mecanico_id"]) if manutencao["mecanico_id"] else 0
-        #         )
-
-        #         descricao = st.text_area("Descrição", value=manutencao.get("problema_descricao", ""))
-        #         resolucao = st.text_area("Resolução", value=manutencao.get("resolucao_do_problema", ""))
-        #         observacao = st.text_area("Observações", value=manutencao.get("observacao", ""))
-
-        #         if st.form_submit_button("Salvar"):
-        #             sucesso = Manutencoes.atualizar_manutencao(
-        #                 id=manutencao["id"],
-        #                 novo_status=novo_status["id"],
-        #                 novo_mecanico=novo_mecanico["id"],
-        #                 nova_descricao=descricao,
-        #                 nova_resolucao=resolucao,
-        #                 observacao=observacao
-        #             )
-        #             if sucesso:
-        #                 st.success("✅ Atualização salva com sucesso!")
-        #             else:
-        #                 st.error("❌ Falha ao atualizar manutenção.")

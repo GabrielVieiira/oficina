@@ -79,74 +79,87 @@ class ManutencoesModel(DatabaseManager):
         ))
 
     def get_all_manutencoes(self) -> list[dict]:
-        query = ''' SELECT
-                        id,
-                        patrimonio_id,
-                        regional_id,
-                        solicitante_id,
-                        classificacao_de_manutencao_id,
-                        tipo_de_mao_de_obra_id,
-                        tipo_de_manutencao_id,
-                        prioridade_id,
-                        dt_entrada,
-                        dt_inicio_manutencao,
-                        dt_termino_manutencao,
-                        qtd_horas_mecanico,
-                        problema_descricao,
-                        problema_resolucao,
-                        observacao,
-                        status_de_manutencao_id,
-                        localidade_id
-                    FROM manutencoes
-                    ORDER BY dt_entrada DESC; '''
-        manutencoes = self.fetch_all(query)
-        if manutencoes:
-            return manutencoes
-        else:
-            return []
+        query = '''
+            SELECT
+                id,
+                patrimonio_id,
+                regional_id,
+                solicitante_id,
+                classificacao_de_manutencao_id,
+                tipo_de_mao_de_obra_id,
+                tipo_de_manutencao_id,
+                prioridade_id,
+                dt_entrada,
+                dt_inicio_manutencao,
+                dt_termino_manutencao,
+                dt_saida,
+                qtd_horas_mecanico,
+                problema_descricao,
+                problema_resolucao,
+                observacao,
+                status_de_manutencao_id,
+                dt_ultima_atualizacao,
+                localidade_id
+            FROM manutencoes
+            ORDER BY dt_entrada DESC;
+        '''
+        return self.fetch_all(query) or []
+    def get_mecanicos_por_manutencao(self) -> dict[int, list[int]]:
+        query = '''
+            SELECT manutencao_id, mecanico_id
+            FROM manutencoes_mecanicos
+        '''
+        rows = self.fetch_all(query) or []
+        mecanicos_por_manutencao = {}
+        for row in rows:
+            m_id = row['manutencao_id']
+            if m_id not in mecanicos_por_manutencao:
+                mecanicos_por_manutencao[m_id] = []
+            mecanicos_por_manutencao[m_id].append(row['mecanico_id'])
+        return mecanicos_por_manutencao
 
-    def atualizar_manutencao(
-        self,
-        id: int,
-        status_id: int,
-        patrimonio_id: int,
-        regional_id: int,
-        solicitante_id: int,
-        manutencao_classificacao_id: int,
-        prioridade_id: int,
-        tipo_manutencao_id: int,
-        dt_entrada: datetime.date,
-        problema_descricao: datetime.date,
-        observacao: str,
-        mecanico_id: int,
-        dt_inicio_manutencao: datetime.date,
-        dt_termino_manutencao: datetime.date,
-        tipo_mao_de_obra_id: int,
-        qtd_horas_mecanico: int,
-        locais_id: int,
-        resolucao_do_problema: str
-            ) -> None:
-        try:
-            query = '''UPDATE manutencoes SET
-                        status_id = ?,
-                        solicitante_id = ?,
-                        manutencao_classificacao_id = ?,
-                        prioridade = ?,
-                        tipo_manutencao_id = ?,
-                        dt_entrada = ?,
-                        problema_descricao = ?,
-                        observacao = ?,
-                        mecanico_id = ?,
-                        dt_inicio_manutencao = ?,
-                        dt_termino_manutencao = ?,
-                        tipo_mao_de_obra_id = ?,
-                        qtd_horas_mecanico = ?,
-                        locais_id= ?,
-                        resolucao_do_problema = ?
-                    WHERE id = ?'''
-            self.execute_query(query, (status_id, solicitante_id, manutencao_classificacao_id, prioridade_id, tipo_manutencao_id, dt_entrada,problema_descricao, observacao, mecanico_id, dt_inicio_manutencao, dt_termino_manutencao, tipo_mao_de_obra_id, qtd_horas_mecanico, locais_id, resolucao_do_problema,id))
-        except Exception as e:
-            st.error(f'Erro ao atualizar manutenção: {e}')
+    def atualizar_manutencao(self, **kwargs):
+        query = '''
+            UPDATE manutencoes SET
+                status_de_manutencao_id = ?,
+                patrimonio_id = ?,
+                regional_id = ?,
+                solicitante_id = ?,
+                classificacao_de_manutencao_id = ?,
+                prioridade_id = ?,
+                tipo_de_manutencao_id = ?,
+                dt_entrada = ?,
+                problema_descricao = ?,
+                observacao = ?,
+                dt_inicio_manutencao = ?,
+                dt_termino_manutencao = ?,
+                tipo_de_mao_de_obra_id = ?,
+                qtd_horas_mecanico = ?,
+                localidade_id = ?,
+                problema_resolucao = ?,
+                dt_ultima_atualizacao = CURRENT_DATE
+            WHERE id = ?
+        '''
+        params = (
+            kwargs["status_de_manutencao_id"],
+            kwargs["patrimonio_id"],
+            kwargs["regional_id"],
+            kwargs["solicitante_id"],
+            kwargs["classificacao_de_manutencao_id"],
+            kwargs["prioridade_id"],
+            kwargs["tipo_de_manutencao_id"],
+            kwargs["dt_entrada"],
+            kwargs["problema_descricao"],
+            kwargs["observacao"],
+            kwargs.get("dt_inicio_manutencao"),
+            kwargs.get("dt_termino_manutencao"),
+            kwargs.get("tipo_de_mao_de_obra_id"),
+            kwargs["qtd_horas_mecanico"],
+            kwargs.get("localidade_id"),
+            kwargs.get("problema_resolucao"),
+            kwargs["id"]
+        )
+        self.execute_query(query, params)
 
     def get_manutencoes_concluidas(self) -> list:
         try:
@@ -263,13 +276,23 @@ class ManutencoesModel(DatabaseManager):
             return patrimonios_em_manutencao
         else:
             return []
-        
+
     def buscar_id_ultima_manutencao(self, patrimonio_id: int) -> int:
         query = '''SELECT max(id) AS id FROM manutencoes WHERE patrimonio_id = ?'''
         manutencao = self.fetch_one(query, (patrimonio_id,))
         return manutencao['id']
-    
+
     def cadastrar_mecanicos(self, manutencao_id: int, mecanicos_id: list[int]) -> None:
         for mecanico_id in mecanicos_id:
             query = '''INSERT INTO manutencoes_mecanicos (manutencao_id, mecanico_id) VALUES (?, ?)'''
             self.execute_query(query, (manutencao_id, mecanico_id))
+
+    def atualizar_mecanicos_da_manutencao(self, manutencao_id: int, mecanicos_ids: list[int]) -> None:
+        # Remove todos os registros atuais
+        delete_query = "DELETE FROM manutencoes_mecanicos WHERE manutencao_id = ?"
+        self.execute_query(delete_query, (manutencao_id,))
+
+        # Insere os novos
+        insert_query = "INSERT INTO manutencoes_mecanicos (manutencao_id, mecanico_id) VALUES (?, ?)"
+        for mecanico_id in mecanicos_ids:
+            self.execute_query(insert_query, (manutencao_id, mecanico_id))
