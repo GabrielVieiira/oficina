@@ -99,7 +99,7 @@ with aba_patrimonios:
                     with col1:
                         st.markdown(f'**#{p["numero_do_patrimonio"]}**')
                         st.markdown(f'🧾 Centro de Custo: {p["centroDeCusto"]} | Classificação: {p["classificacao"]}')
-                        st.markdown(f'🚩 Próprio: {'✅ Sim' if p["proprio"] else '❌ Não'}')
+                        st.markdown(f'🚩 Próprio: {"✅ Sim" if p["proprio"] else "❌ Não"}')
 
                     with col2:
                             if st.button('🗑️ Excluir', key=f'excluir_patrimonio{p["id"]}'):
