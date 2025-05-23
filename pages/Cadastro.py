@@ -16,7 +16,7 @@ Patrimonios = PatrimoniosService()
 Solicitantes = SolicitantesService()
 Locais = LocaisService()
 
-st.set_page_config(page_title='Cadastro', page_icon=':clipboard:', layout='wide')
+st.set_page_config(page_title='Cadastro', page_icon="favicon.ico", layout='wide')
 st.title('📋 GERENCIAR')
 
 

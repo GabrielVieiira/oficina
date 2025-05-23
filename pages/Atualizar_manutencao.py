@@ -24,6 +24,7 @@ TipoMaoDeObra = TipoMaoDeObraService()
 Locais = LocaisService()
 Prioridades = PrioridadesService()
 
+st.set_page_config(page_title='Atualizar Manutenção', page_icon="favicon.ico", layout='wide')
 
 st.title('🔧 Atualizar Manutenções')
 
