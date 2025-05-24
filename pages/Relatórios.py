@@ -5,7 +5,7 @@ from services.manutencoes_service import ManutencoesService
 
 Manutencoes = ManutencoesService()
 
-st.set_page_config(page_title='Relatórios de Manutenção', page_icon="favicon.ico", layout='wide')
+st.set_page_config(page_title='Relatórios de Manutenção', page_icon="./favicon.ico", layout='wide')
 st.title('📊 Relatórios de Manutenção')
 st.markdown('---')
 

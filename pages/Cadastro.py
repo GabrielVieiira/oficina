@@ -16,7 +16,7 @@ Patrimonios = PatrimoniosService()
 Solicitantes = SolicitantesService()
 Locais = LocaisService()
 
-st.set_page_config(page_title='Cadastro', page_icon="favicon.ico", layout='wide')
+st.set_page_config(page_title='Cadastro', page_icon="./favicon.ico", layout='wide')
 st.title('📋 GERENCIAR')
 
 
@@ -79,7 +79,8 @@ with aba_patrimonios:
                     Patrimonios.cadastrar_patrimonio(
                         numero,
                         centro_de_custo['id'],
-                        modelo, classificacao['id'],
+                        modelo,
+                        classificacao['id'],
                         proprio == 'Sim'
                     )
                     st.success(f'✅ Patrimônio `{numero.upper()}` cadastrado com sucesso!')

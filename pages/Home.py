@@ -1,11 +1,8 @@
 import streamlit as st
 
-st.set_page_config(page_title="Sistema Oficina", page_icon="favicon.ico",)
+st.set_page_config(page_title="Sistema Oficina", page_icon="./favicon.ico",)
 
 st.title('Controle Oficina')
-
-# Logo ou imagem opcional
-st.logo("logobc.png",size='large', icon_image='favicon.ico')
 
 # Título e boas-vindas
 st.markdown("""

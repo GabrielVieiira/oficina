@@ -23,7 +23,7 @@ TipoMaoDeObra = TipoMaoDeObraService()
 Locais = LocaisService()
 Prioridades = PrioridadesService()
 
-st.set_page_config(page_title='Entrada de Manutenção', page_icon="favicon.ico", layout='wide')
+st.set_page_config(page_title='Entrada de Manutenção', page_icon="./favicon.ico", layout='wide')
 st.title('📥 Registrar Entrada para Manutenção')
 st.markdown('---')
 
