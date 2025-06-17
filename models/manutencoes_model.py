@@ -296,3 +296,42 @@ class ManutencoesModel(DatabaseManager):
         insert_query = 'INSERT INTO manutencoes_mecanicos (manutencao_id, mecanico_id) VALUES (?, ?)'
         for mecanico_id in mecanicos_ids:
             self.execute_query(insert_query, (manutencao_id, mecanico_id))
+            
+    def get_patrimonios_na_oficina(self) -> list[dict]:
+        query = '''
+            SELECT
+                patrimonios.numero_do_patrimonio,
+                patrimonios.modelo,
+                patrimonios_na_oficina.dt_entrada,
+                status_de_manutencao.nome AS status,
+                manutencoes.id AS manutencao_id
+            FROM patrimonios_na_oficina
+            LEFT JOIN manutencoes ON patrimonios_na_oficina.manutencao_id = manutencoes.id
+            LEFT JOIN patrimonios ON patrimonios_na_oficina.patrimonio_id = patrimonios.id
+            LEFT JOIN status_de_manutencao ON manutencoes.status_de_manutencao_id = status_de_manutencao.id
+            WHERE patrimonios_na_oficina.dt_saida IS NULL;
+        '''
+        return self.fetch_all(query) or []
+    
+    def registrar_entrada_na_oficina(self, manutencao_id:int, patrimonio_id: int, dt_entrada: datetime.date) -> None:
+        query = '''
+            INSERT INTO patrimonios_na_oficina (manutencao_id, patrimonio_id, dt_entrada)
+            VALUES (?, ?, ?)
+        '''
+        self.execute_query(query, (manutencao_id, patrimonio_id, dt_entrada))
+
+    
+    def registrar_retirada_da_oficina(self, patrimonio_id: int) -> None:
+        ...
+        
+    def ja_esta_na_oficina(self, patrimonio_id: int) -> bool:
+        try:
+            query = '''SELECT * FROM patrimonios_na_oficina WHERE patrimonio_id = ?'''
+            manutencao = self.fetch_one(query, (patrimonio_id,))
+            return bool(manutencao)
+        except Exception as e:
+            raise Exception(f'Erro ao verificar patrimônio: {e}')
+        
+    def registrar_saida(self, manutencao_id: int, data_saida: datetime.date):
+        query = "UPDATE patrimonios_na_oficina SET dt_saida = ? WHERE manutencao_id = ?"
+        self.execute_query(query, (data_saida, manutencao_id))

@@ -66,3 +66,4 @@ class PatrimoniosModel(DatabaseManager):
         query = 'DELETE FROM patrimonios WHERE id = ?'
         params = (id,)
         self.execute_query(query, params)
+        

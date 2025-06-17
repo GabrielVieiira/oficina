@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="Sistema Oficina", page_icon="./favicon.ico",)
+# st.set_page_config(page_title="Sistema Oficina", page_icon="./favicon.ico",)
 
 st.title('Controle Oficina')
 

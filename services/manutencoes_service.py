@@ -41,15 +41,19 @@ class ManutencoesService:
         self._validar_planejada(**dados)
         dados.pop('mecanicos_id', None)
         self.manutencoes_model.create_manutencao(**dados)
+        manutencao_id = self.manutencoes_model.buscar_id_ultima_manutencao(dados['patrimonio_id'])
+        if not self._ja_esta_na_oficina(dados['patrimonio_id']):
+            self.registrar_entrada_na_oficina(manutencao_id, dados['patrimonio_id'], dados['dt_entrada'])
+
 
     def _cadastrar_iniciada(self, **dados):
         self._validar_iniciada(**dados)
         mecanicos_id = dados.pop('mecanicos_id', None)
         self.manutencoes_model.create_manutencao(**dados)
         manutencao_id = self.manutencoes_model.buscar_id_ultima_manutencao(dados['patrimonio_id'])
+        if not self._ja_esta_na_oficina(dados['patrimonio_id']):
+            self.registrar_entrada_na_oficina(manutencao_id, dados['patrimonio_id'], dados['dt_entrada'])
         self.manutencoes_model.cadastrar_mecanicos(manutencao_id, mecanicos_id)
-
-
 
     def _cadastrar_finalizada(self, **dados):
         self._validar_finalizada(**dados)
@@ -129,7 +133,6 @@ class ManutencoesService:
         localidade_id: Optional[int] = None,
         problema_resolucao: Optional[str] = ''
     ) -> None:
-        # Atualiza a manutenção
         self.manutencoes_model.atualizar_manutencao(
             id=id,
             status_de_manutencao_id=status_de_manutencao_id,
@@ -150,7 +153,6 @@ class ManutencoesService:
             problema_resolucao=problema_resolucao
         )
 
-        # Atualiza relação com mecânicos
         self.manutencoes_model.atualizar_mecanicos_da_manutencao(id, mecanicos_ids)
 
     def listar_concluidos(self):
@@ -170,3 +172,18 @@ class ManutencoesService:
 
     def listar_patrimonios_em_manutencao(self) -> list[dict]:
         return self.manutencoes_model.get_patrimonios_em_manutencao()
+
+    def listar_patrimonios_na_oficina(self) -> list:
+        return self.manutencoes_model.get_patrimonios_na_oficina() or []
+    
+    def registrar_entrada_na_oficina(self, manutencao_id: int, patrimonio_id: int, dt_entrada: datetime.date) -> None:
+        self.manutencoes_model.registrar_entrada_na_oficina(manutencao_id, patrimonio_id, dt_entrada)
+    
+    def registrar_retirada_da_oficina(self, patrimonio_id: int) -> None:
+        self.manutencoes_model.registrar_retirada_da_oficina(patrimonio_id)
+        
+    def _ja_esta_na_oficina(self, patrimonio_id: int) -> bool:
+        return self.manutencoes_model.ja_esta_na_oficina(patrimonio_id)
+
+    def registrar_saida_da_oficina(self, manutencao_id: int, data_saida: datetime.date) -> None:
+        self.manutencoes_model.registrar_saida(manutencao_id, data_saida)
