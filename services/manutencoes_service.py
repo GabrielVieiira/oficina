@@ -1,6 +1,7 @@
 from models.manutencoes_model import ManutencoesModel
-import datetime
+from datetime import datetime, date
 from typing import Optional
+import pandas as pd
 
 class ManutencoesService:
     def __init__(self):
@@ -83,6 +84,20 @@ class ManutencoesService:
             m_id = m['id']
             m['mecanicos'] = mecanicos_map.get(m_id, [])
         return manutencoes
+    
+    def listar_manutencoes_por_status(self, status_selecionado: int) -> list[dict]:
+        if status_selecionado is None:
+            return []
+        elif status_selecionado < 1:
+            manutencoes = self.manutencoes_model.get_all_manutencoes()
+        else:
+            manutencoes = self.manutencoes_model.get_manutencoes_por_status(status_selecionado)
+            
+        mecanicos_map = self.manutencoes_model.get_mecanicos_por_manutencao()
+        for m in manutencoes:
+            m_id = m['id']
+            m['mecanicos'] = mecanicos_map.get(m_id, [])
+        return manutencoes
 
     def manutencao_selecao(self) -> list:
         try:
@@ -122,12 +137,12 @@ class ManutencoesService:
         classificacao_de_manutencao_id: int,
         prioridade_id: int,
         tipo_de_manutencao_id: int,
-        dt_entrada: datetime.date,
+        dt_entrada: datetime,
         problema_descricao: Optional[str],
         observacao: Optional[str],
-        mecanicos_ids: list[int],
-        dt_inicio_manutencao: Optional[datetime.date] = None,
-        dt_termino_manutencao: Optional[datetime.date] = None,
+        mecanicos_ids: Optional[list[int]]= None,
+        dt_inicio_manutencao: Optional[datetime] = None,
+        dt_termino_manutencao: Optional[datetime] = None,
         tipo_de_mao_de_obra_id: Optional[int] = None,
         qtd_horas_mecanico: int = 0,
         localidade_id: Optional[int] = None,
@@ -152,8 +167,8 @@ class ManutencoesService:
             localidade_id=localidade_id,
             problema_resolucao=problema_resolucao
         )
-
-        self.manutencoes_model.atualizar_mecanicos_da_manutencao(id, mecanicos_ids)
+        if mecanicos_ids is not None:
+            self.manutencoes_model.atualizar_mecanicos_da_manutencao(id, mecanicos_ids)
 
     def listar_concluidos(self):
         return self.manutencoes_model.get_manutencoes_concluidas()
@@ -164,19 +179,44 @@ class ManutencoesService:
     def excluir_manutencao(self, id: int) -> None:
         self.manutencoes_model.excluir_manutencao(id)
 
-    def manutencoes_iniciadas(self, data_inicio: datetime.date, data_fim: datetime.date) -> list[dict]:
-        return self.manutencoes_model.get_manutencoes_iniciadas(data_inicio, data_fim)
+    def manutencoes_iniciadas(self, data_inicio: date, data_fim: date) -> pd.DataFrame:
+        resultados = pd.DataFrame(self.manutencoes_model.get_manutencoes_iniciadas(data_inicio, data_fim))
 
-    def manutencoes_finalizadas(self, data_inicio: datetime.date, data_fim: datetime.date) -> list[dict]:
-        return self.manutencoes_model.get_manutencoes_finalizadas(data_inicio, data_fim)
+        if 'dt_entrada' in resultados.columns:
+            resultados['dt_entrada'] = pd.to_datetime(resultados['dt_entrada']).dt.strftime('%d/%m/%Y')
 
-    def listar_patrimonios_em_manutencao(self) -> list[dict]:
-        return self.manutencoes_model.get_patrimonios_em_manutencao()
+        return resultados
+
+    def manutencoes_finalizadas(self, data_inicio: date, data_fim: date) -> pd.DataFrame:
+        resultados = pd.DataFrame(self.manutencoes_model.get_manutencoes_finalizadas(data_inicio, data_fim))
+        
+        if 'dt_entrada' in resultados.columns:
+            resultados['dt_entrada'] = pd.to_datetime(resultados['dt_entrada']).dt.strftime('%d/%m/%Y')
+        if 'dt_termino_manutencao' in resultados.columns:
+            resultados['dt_termino_manutencao'] = pd.to_datetime(resultados['dt_termino_manutencao']).dt.strftime('%d/%m/%Y')
+            
+        return resultados
 
     def listar_patrimonios_na_oficina(self) -> list:
-        return self.manutencoes_model.get_patrimonios_na_oficina() or []
+        resultados = self.manutencoes_model.get_patrimonios_na_oficina() or []
+        for patrimonio in resultados:
+            data = patrimonio.get('dt_entrada')
+
+            if isinstance(data, str):
+                try:
+                    data_obj = datetime.strptime(data, '%Y-%m-%d')
+                    patrimonio['dt_entrada'] = data_obj.strftime('%d/%m/%Y')
+                except ValueError:
+                    # Mantém o valor original caso já esteja no formato desejado
+                    pass
+            elif isinstance(data, (datetime, datetime)):
+                patrimonio['dt_entrada'] = data.strftime('%d/%m/%Y')
+            else:
+                patrimonio['dt_entrada'] = ''
+
+        return resultados
     
-    def registrar_entrada_na_oficina(self, manutencao_id: int, patrimonio_id: int, dt_entrada: datetime.date) -> None:
+    def registrar_entrada_na_oficina(self, manutencao_id: int, patrimonio_id: int, dt_entrada: datetime) -> None:
         self.manutencoes_model.registrar_entrada_na_oficina(manutencao_id, patrimonio_id, dt_entrada)
     
     def registrar_retirada_da_oficina(self, patrimonio_id: int) -> None:
@@ -185,5 +225,22 @@ class ManutencoesService:
     def _ja_esta_na_oficina(self, patrimonio_id: int) -> bool:
         return self.manutencoes_model.ja_esta_na_oficina(patrimonio_id)
 
-    def registrar_saida_da_oficina(self, manutencao_id: int, data_saida: datetime.date) -> None:
+    def registrar_saida_da_oficina(self, manutencao_id: int, data_saida: date) -> None:
         self.manutencoes_model.registrar_saida(manutencao_id, data_saida)
+        
+    def listar_veiculos_por_status_de_manutencao(self, status_de_manutencao_id: int) -> list[dict]:
+        dicionario_em_branco =[{
+            'patrimonio_id': None,
+            'patrimonio_numero': '',
+        }]
+        if status_de_manutencao_id is None:
+            return dicionario_em_branco
+        return dicionario_em_branco + self.manutencoes_model.get_veiculos_por_status_de_manutencao(status_de_manutencao_id)
+    
+    def listar_manutencoes_por_status_e_patrimonio(self, status_de_manutencao_id: int, patrimonio_id: int) -> list[dict]:
+        if status_de_manutencao_id is None or patrimonio_id is None :
+            return []
+        elif status_de_manutencao_id < 1:
+            return self.manutencoes_model.get_all_manutencoes_por_patrimonio(patrimonio_id)
+        else:
+            return self.manutencoes_model.get_manutencoes_por_status_e_patrimonio(status_de_manutencao_id, patrimonio_id)

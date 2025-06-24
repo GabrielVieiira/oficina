@@ -31,30 +31,23 @@ st.title('🔧 Atualizar Manutenções')
 st.markdown('### 🔍 Filtros')
 col1, col2 = st.columns(2)
 
-filtro_status = col1.selectbox(
+status_selecionado = col1.selectbox(
     'Filtrar por Status',
-    ['Todos'] + [s['nome'] for s in ManutencoesStatus.listar_manutencao_status()]
+    ManutencoesStatus.status_selecao(),
+    format_func=lambda x: x['nome'],
 )
 
-filtro_patrimonio = col2.selectbox(
+patrimonio_selecionado = col2.selectbox(
     'Filtrar por Patrimônio',
-    Patrimonios.patrimonios_selecao(),
-    format_func=lambda x: f'{x["numero_do_patrimonio"]} - {x["modelo"]}'
+    Manutencoes.listar_veiculos_por_status_de_manutencao(status_selecionado['id']),
+    format_func=lambda x: f'{x["patrimonio_numero"]}'
 )
 
-
-manutencoes = Manutencoes.listar_manutencoes()
+manutencoes = Manutencoes.listar_manutencoes_por_status_e_patrimonio(status_selecionado['id'], patrimonio_selecionado['patrimonio_id'])
 mecanicos = Mecanicos.listar_mecanicos()
 status_list = ManutencoesStatus.listar_manutencao_status()
 
 if manutencoes:
-
-    if filtro_status != 'Todos':
-        status_id = next((s['id'] for s in status_list if s['nome'] == filtro_status), None)
-        manutencoes = [m for m in manutencoes if m['status_de_manutencao_id'] == status_id]
-
-    if filtro_patrimonio['id']:
-        manutencoes = [m for m in manutencoes if m['patrimonio_id'] == filtro_patrimonio['id']]
 
     for manutencao in manutencoes:
         with st.expander(f'Manutenção #{manutencao["id"]}'):
@@ -150,13 +143,13 @@ if manutencoes:
                 horizontal=True,
                 key=f'tipo_mao_obra_{manutencao["id"]}'
                 )
-
-            mecanico = None
+            
+            mecanicos_selecionados = None
             data_inicio = None
             data_termino = None
-            resolucao_problema = ''
-
-            if status_manutencao['nome'] in ['INICIADO', 'FINALIZADO']:
+            resolucao_problema = None
+            
+            if status_manutencao['nome'] in ['INICIADO', 'FINALIZADO',  'AGUARDANDO PEÇAS', 'CANCELADO']:
                 ids_mecanicos_manutencao = manutencao.get('mecanicos', [])
                 mecanicos_selecionados = col9.multiselect(
                     '👨‍🔧 Mecânicos Responsáveis',
@@ -174,7 +167,7 @@ if manutencoes:
                     key=f'data_inicio_{manutencao["id"]}',
                     )
 
-            if status_manutencao['nome'] == 'FINALIZADO':
+            if status_manutencao['nome'] in ['FINALIZADO']:
                 data_termino = col9.date_input(
                     '🏁 Término da Manutenção',
                     format='DD/MM/YYYY',
@@ -208,7 +201,6 @@ if manutencoes:
                 )
 
             col11, col12 = st.columns(2)
-
             botao_atualizar = col11.button(
                 '✅ Atualizar',
                 key=f'atualizar_{manutencao["id"]}',
@@ -228,7 +220,7 @@ if manutencoes:
                         dt_entrada=data_entrada,
                         problema_descricao=descricao_problema,
                         observacao=observacao,
-                        mecanicos_ids=[m['id'] for m in mecanicos_selecionados],
+                        mecanicos_ids = [m['id'] for m in (mecanicos_selecionados or [])],
                         dt_inicio_manutencao=data_inicio,
                         dt_termino_manutencao=data_termino,
                         tipo_de_mao_de_obra_id=tipo_mao_obra['id'],
@@ -245,6 +237,6 @@ if manutencoes:
                 key=f'excluir_{manutencao["id"]}',
                 on_click=Manutencoes.excluir_manutencao,
                 args=(manutencao['id'],)
-            )
+            ) 
 else:
     st.warning('⚠️ Nenhuma manutenção encontrada com os filtros aplicados.')

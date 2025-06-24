@@ -81,29 +81,76 @@ class ManutencoesModel(DatabaseManager):
     def get_all_manutencoes(self) -> list[dict]:
         query = '''
             SELECT
-                id,
-                patrimonio_id,
-                regional_id,
-                solicitante_id,
-                classificacao_de_manutencao_id,
-                tipo_de_mao_de_obra_id,
-                tipo_de_manutencao_id,
-                prioridade_id,
-                dt_entrada,
-                dt_inicio_manutencao,
-                dt_termino_manutencao,
-                dt_saida,
-                qtd_horas_mecanico,
-                problema_descricao,
-                problema_resolucao,
-                observacao,
-                status_de_manutencao_id,
-                dt_ultima_atualizacao,
-                localidade_id
-            FROM manutencoes
-            ORDER BY dt_entrada DESC;
+                m.id,
+                m.patrimonio_id,
+                m.regional_id,
+                m.solicitante_id,
+                m.classificacao_de_manutencao_id,
+                m.tipo_de_mao_de_obra_id,
+                m.tipo_de_manutencao_id,
+                m.prioridade_id,
+                m.dt_entrada,
+                m.dt_inicio_manutencao,
+                m.dt_termino_manutencao,
+                m.dt_saida,
+                m.qtd_horas_mecanico,
+                m.problema_descricao,
+                m.problema_resolucao,
+                m.observacao,
+                m.status_de_manutencao_id,
+                m.dt_ultima_atualizacao,
+                m.localidade_id,
+                GROUP_CONCAT(mm.mecanico_id) AS mecanicos
+            FROM manutencoes m
+            LEFT JOIN manutencoes_mecanicos mm ON m.id = mm.manutencao_id
+            GROUP BY m.id
+            ORDER BY m.dt_entrada DESC;
         '''
-        return self.fetch_all(query) or []
+        registros = self.fetch_all(query) or []
+
+        # Transforma 'mecanicos' de string para lista de int
+        for r in registros:
+            r['mecanicos'] = list(map(int, r['mecanicos'].split(','))) if r['mecanicos'] else []
+
+        return registros
+    
+    def get_all_manutencoes_por_patrimonio(self, patrimonio_id: int) -> list[dict]:
+        query = '''
+            SELECT
+                m.id,
+                m.patrimonio_id,
+                m.regional_id,
+                m.solicitante_id,
+                m.classificacao_de_manutencao_id,
+                m.tipo_de_mao_de_obra_id,
+                m.tipo_de_manutencao_id,
+                m.prioridade_id,
+                m.dt_entrada,
+                m.dt_inicio_manutencao,
+                m.dt_termino_manutencao,
+                m.dt_saida,
+                m.qtd_horas_mecanico,
+                m.problema_descricao,
+                m.problema_resolucao,
+                m.observacao,
+                m.status_de_manutencao_id,
+                m.dt_ultima_atualizacao,
+                m.localidade_id,
+                GROUP_CONCAT(mm.mecanico_id) AS mecanicos
+            FROM manutencoes m
+            LEFT JOIN manutencoes_mecanicos mm ON m.id = mm.manutencao_id
+            WHERE m.patrimonio_id = ?
+            GROUP BY m.id
+            ORDER BY m.dt_entrada DESC;
+        '''
+        registros = self.fetch_all(query, (patrimonio_id,)) or []
+
+        # Transforma 'mecanicos' de string para lista de int
+        for r in registros:
+            r['mecanicos'] = list(map(int, r['mecanicos'].split(','))) if r['mecanicos'] else []
+
+        return registros
+    
     def get_mecanicos_por_manutencao(self) -> dict[int, list[int]]:
         query = '''
             SELECT manutencao_id, mecanico_id
@@ -119,28 +166,24 @@ class ManutencoesModel(DatabaseManager):
         return mecanicos_por_manutencao
 
     def atualizar_manutencao(self, **kwargs):
-        query = '''
-            UPDATE manutencoes SET
-                status_de_manutencao_id = ?,
-                patrimonio_id = ?,
-                regional_id = ?,
-                solicitante_id = ?,
-                classificacao_de_manutencao_id = ?,
-                prioridade_id = ?,
-                tipo_de_manutencao_id = ?,
-                dt_entrada = ?,
-                problema_descricao = ?,
-                observacao = ?,
-                dt_inicio_manutencao = ?,
-                dt_termino_manutencao = ?,
-                tipo_de_mao_de_obra_id = ?,
-                qtd_horas_mecanico = ?,
-                localidade_id = ?,
-                problema_resolucao = ?,
-                dt_ultima_atualizacao = CURRENT_DATE
-            WHERE id = ?
-        '''
-        params = (
+        campos = [
+            'status_de_manutencao_id',
+            'patrimonio_id',
+            'regional_id',
+            'solicitante_id',
+            'classificacao_de_manutencao_id',
+            'prioridade_id',
+            'tipo_de_manutencao_id',
+            'dt_entrada',
+            'problema_descricao',
+            'observacao',
+            'tipo_de_mao_de_obra_id',
+            'qtd_horas_mecanico',
+            'localidade_id',
+            'dt_ultima_atualizacao'
+        ]
+        
+        valores = [
             kwargs['status_de_manutencao_id'],
             kwargs['patrimonio_id'],
             kwargs['regional_id'],
@@ -151,15 +194,37 @@ class ManutencoesModel(DatabaseManager):
             kwargs['dt_entrada'],
             kwargs['problema_descricao'],
             kwargs['observacao'],
-            kwargs.get('dt_inicio_manutencao'),
-            kwargs.get('dt_termino_manutencao'),
             kwargs.get('tipo_de_mao_de_obra_id'),
             kwargs['qtd_horas_mecanico'],
             kwargs.get('localidade_id'),
-            kwargs.get('problema_resolucao'),
-            kwargs['id']
-        )
-        self.execute_query(query, params)
+            datetime.date.today()  # ou use função SQL se preferir
+        ]
+
+        # Campos opcionais com lógica condicional
+        if kwargs.get('dt_inicio_manutencao') is not None:
+            campos.append('dt_inicio_manutencao')
+            valores.append(kwargs['dt_inicio_manutencao'])
+
+        if kwargs.get('dt_termino_manutencao') is not None:
+            campos.append('dt_termino_manutencao')
+            valores.append(kwargs['dt_termino_manutencao'])
+
+        if kwargs.get('problema_resolucao') is not None:
+            campos.append('problema_resolucao')
+            valores.append(kwargs['problema_resolucao'])
+
+        # Monta a parte SET da query dinamicamente
+        set_clause = ', '.join(f'{campo} = ?' for campo in campos)
+
+        query = f'''
+            UPDATE manutencoes SET
+                {set_clause}
+            WHERE id = ?
+        '''
+
+        valores.append(kwargs['id'])  # para o WHERE
+
+        self.execute_query(query, tuple(valores))
 
     def get_manutencoes_concluidas(self) -> list:
         try:
@@ -255,27 +320,37 @@ class ManutencoesModel(DatabaseManager):
             return self.fetch_all(query, (data_inicio, data_fim))
         else:
             return []
+        
+    def get_manutencoes_por_status(self, status_id: int) -> list[dict]:
+        if status_id == 0:
+            return self.get_all_manutencoes()
 
-    def get_patrimonios_em_manutencao(self) -> list[dict]:
         query = '''
             SELECT
-                p.numero_do_patrimonio AS patrimonio,
-                p.modelo,
-                r.nome AS regional,
-                m.dt_entrada,
-                s.nome AS status
-            FROM manutencoes m
-            LEFT JOIN patrimonios p ON m.patrimonio_id = p.id
-            LEFT JOIN regionais r ON m.regional_id = r.id
-            LEFT JOIN status_de_manutencao s ON m.status_de_manutencao_id = s.id
-            WHERE m.dt_saida IS NULL
-            ORDER BY m.dt_entrada ASC
+                id,
+                patrimonio_id,
+                regional_id,
+                solicitante_id,
+                classificacao_de_manutencao_id,
+                tipo_de_mao_de_obra_id,
+                tipo_de_manutencao_id,
+                prioridade_id,
+                dt_entrada,
+                dt_inicio_manutencao,
+                dt_termino_manutencao,
+                dt_saida,
+                qtd_horas_mecanico,
+                problema_descricao,
+                problema_resolucao,
+                observacao,
+                status_de_manutencao_id,
+                dt_ultima_atualizacao,
+                localidade_id
+            FROM manutencoes
+            WHERE status_de_manutencao_id = ?
+            ORDER BY dt_entrada DESC;
         '''
-        patrimonios_em_manutencao = self.fetch_all(query)
-        if patrimonios_em_manutencao:
-            return patrimonios_em_manutencao
-        else:
-            return []
+        return self.fetch_all(query, (status_id,)) or []
 
     def buscar_id_ultima_manutencao(self, patrimonio_id: int) -> int:
         query = '''SELECT max(id) AS id FROM manutencoes WHERE patrimonio_id = ?'''
@@ -287,14 +362,14 @@ class ManutencoesModel(DatabaseManager):
             query = '''INSERT INTO manutencoes_mecanicos (manutencao_id, mecanico_id) VALUES (?, ?)'''
             self.execute_query(query, (manutencao_id, mecanico_id))
 
-    def atualizar_mecanicos_da_manutencao(self, manutencao_id: int, mecanicos_ids: list[int]) -> None:
+    def atualizar_mecanicos_da_manutencao(self, manutencao_id: int, mecanicos_ids: Optional[list[int]]) -> None:
         # Remove todos os registros atuais
         delete_query = 'DELETE FROM manutencoes_mecanicos WHERE manutencao_id = ?'
         self.execute_query(delete_query, (manutencao_id,))
 
         # Insere os novos
         insert_query = 'INSERT INTO manutencoes_mecanicos (manutencao_id, mecanico_id) VALUES (?, ?)'
-        for mecanico_id in mecanicos_ids:
+        for mecanico_id in mecanicos_ids or []:
             self.execute_query(insert_query, (manutencao_id, mecanico_id))
             
     def get_patrimonios_na_oficina(self) -> list[dict]:
@@ -335,3 +410,55 @@ class ManutencoesModel(DatabaseManager):
     def registrar_saida(self, manutencao_id: int, data_saida: datetime.date):
         query = "UPDATE patrimonios_na_oficina SET dt_saida = ? WHERE manutencao_id = ?"
         self.execute_query(query, (data_saida, manutencao_id))
+        
+    def get_veiculos_por_status_de_manutencao(self, status_de_manutencao_id: int) -> list[dict]:
+        base_query = '''
+            SELECT DISTINCT
+                m.patrimonio_id AS patrimonio_id,
+                p.numero_do_patrimonio AS patrimonio_numero
+            FROM manutencoes m
+            JOIN patrimonios p ON m.patrimonio_id = p.id
+        '''
+        params = ()
+        if status_de_manutencao_id > 0:
+            base_query += ' WHERE m.status_de_manutencao_id = ?'
+            params = (status_de_manutencao_id,)
+
+        return self.fetch_all(base_query, params) or []
+    
+    def get_manutencoes_por_status_e_patrimonio(self, status_de_manutencao_id: int, patrimonio_id: int) -> list[dict]:
+        query = '''
+            SELECT
+                m.id,
+                m.patrimonio_id,
+                m.regional_id,
+                m.solicitante_id,
+                m.classificacao_de_manutencao_id,
+                m.tipo_de_mao_de_obra_id,
+                m.tipo_de_manutencao_id,
+                m.prioridade_id,
+                m.dt_entrada,
+                m.dt_inicio_manutencao,
+                m.dt_termino_manutencao,
+                m.dt_saida,
+                m.qtd_horas_mecanico,
+                m.problema_descricao,
+                m.problema_resolucao,
+                m.observacao,
+                m.status_de_manutencao_id,
+                m.dt_ultima_atualizacao,
+                m.localidade_id,
+                GROUP_CONCAT(mm.mecanico_id) AS mecanicos
+            FROM manutencoes m
+            LEFT JOIN manutencoes_mecanicos mm ON m.id = mm.manutencao_id
+            WHERE m.status_de_manutencao_id = ? AND m.patrimonio_id = ?
+            GROUP BY m.id
+            ORDER BY m.dt_entrada DESC;
+        '''
+        registros = self.fetch_all(query, (status_de_manutencao_id, patrimonio_id)) or []
+
+        for r in registros:
+            # Converte a string '2,5,8' em lista de ints [2, 5, 8]
+            r['mecanicos'] = list(map(int, r['mecanicos'].split(','))) if r['mecanicos'] else []
+
+        return registros
